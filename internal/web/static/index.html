@@ -20,6 +20,7 @@
         <a class="nav-link" href="#companies" data-section="companies"><span>▤</span> Companies</a>
         <a class="nav-link" href="#scanner" data-section="scanner"><span>⌁</span> Paper scanner</a>
         <a class="nav-link" href="#quality" data-section="quality"><span>◉</span> Data quality</a>
+        <a class="nav-link" href="#tools" data-section="tools"><span>⌘</span> Research tools</a>
       </nav>
       <div class="sidebar-bottom">
         <div class="status-dot"></div><span>Local API workspace</span>
@@ -77,6 +78,28 @@
         <div class="panel table-panel"><div class="table-scroll"><table><thead><tr><th>Instrument</th><th>Records</th><th>First date</th><th>Latest date</th><th>Large moves</th><th>Calendar gaps</th><th>Multiple providers</th></tr></thead><tbody id="qualityRows"><tr><td colspan="7" class="empty">Loading quality report…</td></tr></tbody></table></div></div>
       </section>
 
+
+      <section id="tools" class="section">
+        <div class="section-heading"><div><h2>Research tools</h2><p class="muted">Run every registered API workflow against your local database.</p></div><span class="subtle-tag">API WORKSPACE</span></div>
+        <div class="panel workbench">
+          <div class="workbench-intro"><strong>Endpoint workbench</strong><span>Choose an operation, review its parameters and run it. Mutating operations require your confirmation.</span></div>
+          <div class="workbench-grid">
+            <label>Operation<select id="toolOperation"></select></label>
+            <label>Company ID<input id="toolCompanyId" type="number" min="1" value="1"></label>
+            <label>Index ID<input id="toolIndexId" type="number" min="1" value="1"></label>
+            <label>News ID<input id="toolNewsId" type="number" min="1" value="1"></label>
+            <label>From date<input id="toolFrom" type="date" value="2026-01-01"></label>
+            <label>To date<input id="toolTo" type="date" value="2026-11-11"></label>
+            <label>Days / limit<input id="toolDays" type="number" min="1" value="30"></label>
+            <label>Provider<input id="toolProvider" value="tejhq"></label>
+          </div>
+          <label class="json-label">Request JSON body <span>Only used for operations that accept a body</span><textarea id="toolBody" spellcheck="false"></textarea></label>
+          <div class="workbench-actions"><button class="primary-button" id="runToolButton" type="button">Run selected operation <span>→</span></button><button class="secondary-button" id="resetToolButton" type="button">Reset parameters</button></div>
+          <div class="notice"><strong>Safety</strong><span>This workspace uses stored historical market data. Backtests and forecasts are experimental research, not predictions or investment advice. No broker connection or real orders exist.</span></div>
+          <div class="result-heading"><strong>API response</strong><span id="toolStatus">Waiting for operation</span></div>
+          <pre id="toolResult" class="api-result">Select an operation and run it to view the response.</pre>
+        </div>
+      </section>
       <footer class="footer"><span>MarketMind AI · Research build</span><span>Historical data only · Educational use</span></footer>
     </main>
   </div>
