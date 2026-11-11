@@ -431,3 +431,8 @@ No license has been declared in this repository yet. Do not assume that the proj
 
 **MarketMind AI**
 *Historical research and market intelligence.*
+
+
+### Mobile research workspace
+
+Open `/app/` on the same device as the API server. The **Research tools** section provides a parameterized workbench for the registered company, news, AI analysis, historical prices, analytics, forecast, walk-forward evaluation, backtest, paper scanner, event-study, and index endpoints. Select the relevant company/index/news IDs and date range, review request JSON where applicable, and inspect the raw API response. Destructive company deletion asks for confirmation. All market outputs remain historical/educational; the app does not place broker orders.
