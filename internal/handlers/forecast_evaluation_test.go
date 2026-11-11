@@ -2,6 +2,7 @@ package handlers_test
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -59,7 +60,7 @@ func TestForecastEvaluationRunsWalkForwardModelComparison(t *testing.T) {
 	})
 	start := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 	for i := 0; i < 240; i++ {
-		closePrice := 100 + float64(i)*0.08 + 2.5*mathSin(float64(i)*0.17)
+		closePrice := 100 + float64(i)*0.08 + 2.5*math.Sin(float64(i)*0.17)
 		priceRows.AddRow(
 			start.AddDate(0, 0, i).Format("2006-01-02"),
 			fmt.Sprintf("%.4f", closePrice),
@@ -112,15 +113,3 @@ func TestForecastEvaluationRunsWalkForwardModelComparison(t *testing.T) {
 	}
 }
 
-func mathSin(value float64) float64 {
-	// Deterministic, non-constant synthetic price movement for model tests.
-	const terms = 12
-	x := value
-	sum := x
-	term := x
-	for n := 1; n < terms; n++ {
-		term *= -x * x / float64((2*n)*(2*n+1))
-		sum += term
-	}
-	return sum
-}
