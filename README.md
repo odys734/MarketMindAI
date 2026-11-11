@@ -36,6 +36,14 @@ It combines company information, news collection, AI-assisted news interpretatio
 - Compare a company with a market index.
 - Retrieve a combined market overview.
 
+### Budget-Based Paper Trade Research
+- Scan the stored Indian NSE/BSE company universe (up to 100 registered companies).
+- Rank eligible historical EOD candidates using transparent EMA, RSI and volume filters.
+- Calculate hypothetical ATR-based entry zones, stop-loss and reward levels.
+- Calculate whole-share simulated quantity subject to budget and a capped price-risk budget.
+- Return entry conditions, invalidation rules, exit scenarios and data limitations.
+- Intraday and long-term modes are deferred until suitable intraday feeds and longer-horizon fundamental research are implemented.
+
 ### Data Quality
 - Flag unusually large daily movements.
 - Identify long calendar gaps.
@@ -270,7 +278,7 @@ API prefix:
 | Method | Endpoint | Purpose |
 |---|---|---|
 | POST | `/api/v1/companies/:id/backtest` | Run a hypothetical historical SMA crossover simulation |
-| POST | `/api/v1/companies/:id/forecast` | Generate experimental 1, 5, 10 or 20-session model forecasts |\n| POST | `/api/v1/companies/:id/forecast/evaluate` | Compare forecast models using purged walk-forward validation |
+| POST | `/api/v1/companies/:id/forecast` | Generate experimental 1, 5, 10 or 20-session model forecasts |\n| POST | `/api/v1/companies/:id/forecast/evaluate` | Compare forecast models using purged walk-forward validation |\n| POST | `/api/v1/trade-planner/scan` | Scan stored EOD data and produce budget-constrained paper research plans |
 
 The backtesting engine includes next-session execution, simulated commission and slippage, portfolio equity tracking, and historical performance metrics. It does not place real orders or provide investment recommendations.
 
@@ -405,7 +413,7 @@ The backend currently includes:
 - Data-quality reporting.
 - Automated tests for selected components.
 
-A complete Web Dashboard and Android application are separate development deliverables. Their completion should be verified independently.
+The budget-based paper trade research scanner is an initial EOD-only implementation. Exchange-wide coverage, live/intraday data, fundamental screening, full fee schedules, paper portfolio tracking and a Web Dashboard/Android application remain separate development deliverables.
 
 ---
 
