@@ -7,7 +7,7 @@ func clearConfigEnv(t *testing.T) {
 
 	keys := []string{
 		"HOST", "PORT", "APP_ENV", "DB_HOST", "DB_PORT",
-		"DB_USER", "DB_NAME", "PREFIX", "USER",
+		"DB_USER", "DB_NAME", "DB_SSL_MODE", "PREFIX", "USER",
 		"AI_BASE_URL", "AI_MODEL", "AI_API_KEY",
 		"AI_TIMEOUT_SECONDS",
 	}
@@ -45,6 +45,10 @@ func TestLoadDefaults(t *testing.T) {
 		t.Errorf("unexpected DB user: %s", cfg.DBUser)
 	}
 
+	if cfg.DBSSLMode != "disable" {
+		t.Errorf("expected default SSL mode disable, got %s", cfg.DBSSLMode)
+	}
+
 	if cfg.DBName != "marketmind" {
 		t.Errorf("unexpected DB name: %s", cfg.DBName)
 	}
@@ -72,6 +76,7 @@ func TestLoadCustomValues(t *testing.T) {
 	t.Setenv("DB_PORT", "5433")
 	t.Setenv("DB_USER", "tester")
 	t.Setenv("DB_NAME", "testdb")
+	t.Setenv("DB_SSL_MODE", "verify-full")
 	t.Setenv("AI_BASE_URL", "http://localhost:8081/v1")
 	t.Setenv("AI_MODEL", "test-model")
 	t.Setenv("AI_API_KEY", "test-key")
@@ -84,7 +89,7 @@ func TestLoadCustomValues(t *testing.T) {
 	}
 
 	if cfg.DBHost != "localhost" || cfg.DBPort != "5433" ||
-		cfg.DBUser != "tester" || cfg.DBName != "testdb" {
+		cfg.DBUser != "tester" || cfg.DBName != "testdb" || cfg.DBSSLMode != "verify-full" {
 		t.Error("custom database configuration not loaded")
 	}
 

@@ -14,6 +14,13 @@ import (
 
 func main() {
 	cfg := config.Load()
+
+	if cfg.Environment == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+
 	aiClient := ai.NewClient(cfg)
 
 	db, err := database.Connect(cfg)
@@ -25,11 +32,16 @@ func main() {
 	log.Println("PostgreSQL connected successfully!")
 
 	app := gin.Default()
+
+	if err := app.SetTrustedProxies(nil); err != nil {
+		log.Fatalf("Trusted proxy configuration failed: %v", err)
+	}
+
 	routes.Register(app, db, aiClient)
 
 	log.Printf(
-		"MarketMind AI running on port %s (%s)",
-		cfg.Port,
+		"MarketMind AI running on %s (%s)",
+		net.JoinHostPort(cfg.Host, cfg.Port),
 		cfg.Environment,
 	)
 

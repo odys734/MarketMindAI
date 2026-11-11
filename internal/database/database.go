@@ -11,17 +11,31 @@ import (
 	"marketmind-ai/internal/config"
 )
 
+func validSSLMode(mode string) bool {
+	switch mode {
+	case "disable", "allow", "prefer", "require", "verify-ca", "verify-full":
+		return true
+	default:
+		return false
+	}
+}
+
 func Connect(cfg config.Config) (*sql.DB, error) {
+	if !validSSLMode(cfg.DBSSLMode) {
+		return nil, fmt.Errorf("unsupported DB_SSL_MODE %q", cfg.DBSSLMode)
+	}
+
 	if cfg.DBUser == "" {
 		return nil, fmt.Errorf("DB_USER is not configured")
 	}
 
 	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s dbname=%s sslmode=disable",
+		"host=%s port=%s user=%s dbname=%s sslmode=%s",
 		cfg.DBHost,
 		cfg.DBPort,
 		cfg.DBUser,
 		cfg.DBName,
+		cfg.DBSSLMode,
 	)
 
 	db, err := sql.Open("pgx", dsn)

@@ -105,16 +105,24 @@ The application reads configuration from environment variables.
 
 | Variable | Default | Description |
 |---|---|---|
+| `HOST` | `127.0.0.1` | HTTP bind address; localhost by default |
 | `PORT` | `8080` | HTTP server port |
 | `APP_ENV` | `development` | Environment label |
 | `DB_HOST` | `$PREFIX/tmp` | PostgreSQL host/socket directory |
 | `DB_PORT` | `5432` | PostgreSQL port |
 | `DB_USER` | `$USER` | PostgreSQL user |
 | `DB_NAME` | `marketmind` | Database name |
+| `DB_SSL_MODE` | `disable` | PostgreSQL SSL mode |
 | `AI_BASE_URL` | `http://127.0.0.1:8081/v1` | AI gateway base URL |
 | `AI_MODEL` | `gemini-3.5-flash` | AI model identifier |
 | `AI_API_KEY` | Empty | Optional gateway API key |
 | `AI_TIMEOUT_SECONDS` | `45` | AI request timeout |
+
+For remote PostgreSQL connections, prefer `verify-full` with a valid CA certificate and matching hostname. `disable` is intended for local Termux PostgreSQL.
+
+The API binds to `127.0.0.1` by default. Only set `HOST=0.0.0.0` when network access is deliberately required and suitable API authentication and network protections are in place.
+
+Set `APP_ENV=production` to enable Gin release mode.
 
 Invalid or less-than-one AI timeout values fall back to 45 seconds.
 
@@ -134,10 +142,13 @@ pg_ctl -D "$PREFIX/var/lib/postgresql" \
 ```bash
 cd ~/MarketMindAI
 
+export HOST="127.0.0.1"
+export APP_ENV="development"
 export DB_USER="$(id -un)"
 export DB_HOST="$PREFIX/tmp"
 export DB_PORT="5432"
 export DB_NAME="marketmind"
+export DB_SSL_MODE="disable"
 
 export AI_BASE_URL="http://127.0.0.1:8081/v1"
 export AI_MODEL="gemini-3.5-flash"

@@ -13,6 +13,7 @@ type Config struct {
 	DBPort      string
 	DBUser      string
 	DBName      string
+	DBSSLMode   string
 
 	AIBaseURL string
 	AIModel   string
@@ -42,6 +43,7 @@ func Load() Config {
 		DBPort:      env("DB_PORT", "5432"),
 		DBUser:      env("DB_USER", os.Getenv("USER")),
 		DBName:      env("DB_NAME", "marketmind"),
+		DBSSLMode:   env("DB_SSL_MODE", "disable"),
 
 		AIBaseURL: env("AI_BASE_URL", "http://127.0.0.1:8081/v1"),
 		AIModel:   env("AI_MODEL", "gemini-3.5-flash"),
