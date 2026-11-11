@@ -45,7 +45,15 @@ func EvaluateBaselineWalkForward(
 	}
 
 	for _, fold := range folds {
-		result.Folds = append(result.Folds, FeatureFoldDiagnostic{\n\t\t\tFoldNumber: fold.Number,\n\t\t\tTrainingObservations: len(fold.Train),\n\t\t\tTestObservations: len(fold.Test),\n\t\t\tPurgedObservations: fold.PurgedCount,\n\t\t\tTrainEndDate: fold.TrainEndDate,\n\t\t\tTestStartDate: fold.TestStartDate,\n\t\t\tTestEndDate: fold.TestEndDate,\n\t\t})
+		result.Folds = append(result.Folds, FeatureFoldDiagnostic{
+			FoldNumber:           fold.Number,
+			TrainingObservations: len(fold.Train),
+			TestObservations:     len(fold.Test),
+			PurgedObservations:   fold.PurgedCount,
+			TrainEndDate:         fold.TrainEndDate,
+			TestStartDate:        fold.TestStartDate,
+			TestEndDate:          fold.TestEndDate,
+		})
 		if err := model.Fit(fold.Train, dataset.HorizonSessions); err != nil {
 			return BaselineWalkForwardResult{}, fmt.Errorf(
 				"fit %s on fold %d: %w",
