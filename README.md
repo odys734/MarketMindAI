@@ -44,8 +44,12 @@ It combines company information, news collection, AI-assisted news interpretatio
 - Return entry conditions, invalidation rules, exit scenarios and data limitations.
 - Intraday and long-term modes are deferred until suitable intraday feeds and longer-horizon fundamental research are implemented.
 
-### Mobile-Friendly Research Dashboard
+### Mobile-Friendly Multi-Page Research Dashboard
 - Open the responsive dashboard at `/app/` on desktop or Android.
+- Navigate between dedicated Home, Predictions, Companies, Price Lab, Paper Scanner, Data Quality and Research Tools pages.
+- Home includes a model-based Prediction Centre with Ridge Regression, Zero Return and Historical Mean estimates for 1, 5, 10 or 20 stored trading sessions.
+- Predictions includes chronological expanding-window walk-forward evaluation for model comparison.
+- Forecasts are experimental outputs from historical EOD observations; they are not calibrated probabilities, guaranteed prices, or buy/sell recommendations.
 - View latest stored market/index snapshots, registered companies and historical data-quality coverage.
 - Run the existing EOD paper research screen and inspect indicator summaries and skip reasons.
 - Install the dashboard as a Progressive Web App where the browser supports installation; the app shell is cached for offline loading while API data still requires the backend.
