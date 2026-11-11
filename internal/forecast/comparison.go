@@ -98,6 +98,7 @@ func CompareForecastModels(
 			ModelMetadata:   evaluation.ModelMetadata,
 			HorizonSessions: evaluation.HorizonSessions,
 			FoldCount:       evaluation.FoldCount,
+			Folds:           evaluation.Folds,
 			Observations:    evaluation.Observations,
 			Metrics:         evaluation.Metrics,
 		})
