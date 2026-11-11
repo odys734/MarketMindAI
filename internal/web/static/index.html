@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="description" content="MarketMind AI historical market research dashboard">
+  <title>MarketMind AI</title>
+  <link rel="manifest" href="/app/manifest.webmanifest">
+  <link rel="stylesheet" href="/app/styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2316b8a6'/%3E%3Cpath d='M18 70 38 48 53 60 80 28' fill='none' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <script defer src="/app/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/app/"><span class="brand-mark">M</span><span>MarketMind<span class="brand-ai"> AI</span><small>RESEARCH TERMINAL</small></span></a>
+      <nav class="nav">
+        <a class="nav-link active" href="#overview" data-section="overview"><span>◫</span> Overview</a>
+        <a class="nav-link" href="#companies" data-section="companies"><span>▤</span> Companies</a>
+        <a class="nav-link" href="#scanner" data-section="scanner"><span>⌁</span> Paper scanner</a>
+        <a class="nav-link" href="#quality" data-section="quality"><span>◉</span> Data quality</a>
+        <a class="nav-link" href="#tools" data-section="tools"><span>⌘</span> Research tools</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="status-dot"></div><span>Local API workspace</span>
+        <p>Historical research only. Not a live trading terminal.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><div class="eyebrow">MARKET INTELLIGENCE / INDIA</div><h1>Research overview</h1></div>
+        <div class="top-actions"><span class="data-pill"><i></i> HISTORICAL EOD</span><button id="refreshBtn" class="icon-button" aria-label="Refresh data" title="Refresh data">↻</button></div>
+      </header>
+
+      <section id="overview" class="section">
+        <div class="welcome-row">
+          <div><h2>Market snapshot</h2><p class="muted">Latest available records stored in your database.</p></div>
+          <div class="updated" id="lastUpdated">Waiting for API…</div>
+        </div>
+        <div class="stat-grid">
+          <article class="stat-card"><div class="stat-label">Companies with data</div><div class="stat-value" id="companyCount">—</div><div class="stat-foot">Registered research universe</div></article>
+          <article class="stat-card"><div class="stat-label">Market indices</div><div class="stat-value" id="indexCount">—</div><div class="stat-foot">With available stored records</div></article>
+          <article class="stat-card"><div class="stat-label">Price records</div><div class="stat-value" id="recordCount">—</div><div class="stat-foot">Historical coverage</div></article>
+          <article class="stat-card"><div class="stat-label">API status</div><div class="stat-value status-value" id="apiStatus">Checking</div><div class="stat-foot" id="apiStatusFoot">Local backend connection</div></article>
+        </div>
+        <div class="panel">
+          <div class="panel-heading"><div><h3>Index watch</h3><p class="muted">Latest stored close, not live quotes</p></div><span class="subtle-tag">INDEX DATA</span></div>
+          <div class="index-grid" id="indexGrid"><div class="empty">Loading index records…</div></div>
+        </div>
+      </section>
+
+      <section id="companies" class="section">
+        <div class="section-heading"><div><h2>Company research</h2><p class="muted">Browse instruments registered in your database.</p></div><div class="search-wrap"><input id="companySearch" type="search" placeholder="Search name or symbol" aria-label="Search companies"></div></div>
+        <div class="panel table-panel">
+          <div class="table-scroll"><table><thead><tr><th>Company</th><th>Symbol</th><th>Exchange</th><th>Latest close</th><th>Daily change</th><th>Data date</th></tr></thead><tbody id="companyRows"><tr><td colspan="6" class="empty">Loading companies…</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="scanner" class="section">
+        <div class="section-heading"><div><h2>Paper research scanner</h2><p class="muted">Historical indicator screen for educational simulation only.</p></div><span class="subtle-tag">NO REAL ORDERS</span></div>
+        <div class="panel scanner-panel">
+          <form id="scanForm" class="scan-form">
+            <label>Virtual study budget <span>₹</span><input id="budget" type="number" min="1" max="1000000000000" step="1" value="10000" required></label>
+            <label>Exchange<select id="exchange"><option value="NSE">NSE</option><option value="BSE">BSE</option><option value="">All supported</option></select></label>
+            <label>Risk assumption (%)<input id="riskPercent" type="number" min="0.1" max="2" step="0.1" value="1" required></label>
+            <button class="primary-button" type="submit" id="scanButton">Run historical scan <span>→</span></button>
+          </form>
+          <div class="notice"><strong>Simulation boundary</strong><span>Uses stored end-of-day observations. No live prices, brokerage model, order placement or investment advice.</span></div>
+          <div id="scanSummary" class="scan-summary hidden"></div>
+          <div id="scanResults" class="scan-results"><div class="empty">Set a virtual budget and run the scanner to inspect the stored historical dataset.</div></div>
+        </div>
+      </section>
+
+      <section id="quality" class="section">
+        <div class="section-heading"><div><h2>Data quality monitor</h2><p class="muted">Flags are review prompts, not automatic proof of bad data.</p></div><button id="qualityBtn" class="secondary-button">Refresh report</button></div>
+        <div class="panel table-panel"><div class="table-scroll"><table><thead><tr><th>Instrument</th><th>Records</th><th>First date</th><th>Latest date</th><th>Large moves</th><th>Calendar gaps</th><th>Multiple providers</th></tr></thead><tbody id="qualityRows"><tr><td colspan="7" class="empty">Loading quality report…</td></tr></tbody></table></div></div>
+      </section>
+
+
+      <section id="tools" class="section">
+        <div class="section-heading"><div><h2>Research tools</h2><p class="muted">Run every registered API workflow against your local database.</p></div><span class="subtle-tag">API WORKSPACE</span></div>
+        <div class="panel workbench">
+          <div class="workbench-intro"><strong>Endpoint workbench</strong><span>Choose an operation, review its parameters and run it. Mutating operations require your confirmation.</span></div>
+          <div class="workbench-grid">
+            <label>Operation<select id="toolOperation"></select></label>
+            <label>Company ID<input id="toolCompanyId" type="number" min="1" value="1"></label>
+            <label>Index ID<input id="toolIndexId" type="number" min="1" value="1"></label>
+            <label>Right index ID<input id="toolRightIndexId" type="number" min="1" value="2"></label>
+            <label>News ID<input id="toolNewsId" type="number" min="1" value="1"></label>
+            <label>From date<input id="toolFrom" type="date" value="2026-01-01"></label>
+            <label>To date<input id="toolTo" type="date" value="2026-11-11"></label>
+            <label>Days / limit<input id="toolDays" type="number" min="1" value="30"></label>
+            <label>Provider<input id="toolProvider" value="tejhq"></label>
+          </div>
+          <label class="json-label">Request JSON body <span>Only used for operations that accept a body</span><textarea id="toolBody" spellcheck="false"></textarea></label>
+          <div class="workbench-actions"><button class="primary-button" id="runToolButton" type="button">Run selected operation <span>→</span></button><button class="secondary-button" id="resetToolButton" type="button">Reset parameters</button></div>
+          <div class="notice"><strong>Safety</strong><span>This workspace uses stored historical market data. Backtests and forecasts are experimental research, not predictions or investment advice. No broker connection or real orders exist.</span></div>
+          <div class="result-heading"><strong>API response</strong><span id="toolStatus">Waiting for operation</span></div>
+          <pre id="toolResult" class="api-result">Select an operation and run it to view the response.</pre>
+        </div>
+      </section>
+      <footer class="footer"><span>MarketMind AI · Research build</span><span>Historical data only · Educational use</span></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

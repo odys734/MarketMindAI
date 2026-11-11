@@ -9,6 +9,7 @@ import (
 	"marketmind-ai/internal/ai"
 	"marketmind-ai/internal/handlers"
 	"marketmind-ai/internal/marketdata"
+	"marketmind-ai/internal/web"
 )
 
 func Register(app *gin.Engine, db *sql.DB, aiClient *ai.Client) {
@@ -21,6 +22,7 @@ func Register(app *gin.Engine, db *sql.DB, aiClient *ai.Client) {
 			"status":  "running",
 		})
 	})
+	app.StaticFS("/app", http.FS(web.Filesystem()))
 
 	company := &handlers.CompanyHandler{DB: db}
 	news := &handlers.NewsHandler{DB: db}

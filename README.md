@@ -44,6 +44,13 @@ It combines company information, news collection, AI-assisted news interpretatio
 - Return entry conditions, invalidation rules, exit scenarios and data limitations.
 - Intraday and long-term modes are deferred until suitable intraday feeds and longer-horizon fundamental research are implemented.
 
+### Mobile-Friendly Research Dashboard
+- Open the responsive dashboard at `/app/` on desktop or Android.
+- View latest stored market/index snapshots, registered companies and historical data-quality coverage.
+- Run the existing EOD paper research screen and inspect indicator summaries and skip reasons.
+- Install the dashboard as a Progressive Web App where the browser supports installation; the app shell is cached for offline loading while API data still requires the backend.
+- No broker connection, real order placement or live trading is included.
+
 ### Data Quality
 - Flag unusually large daily movements.
 - Identify long calendar gaps.
@@ -97,8 +104,7 @@ MarketMindAI/
 
 ---
 
-## 4. Requirements
-
+## 4. Dashboard access\n\nAfter starting the API, open `http://127.0.0.1:8080/app/` on the same device. On Android, use the browser menu's install/add-to-home-screen option when available. The dashboard shell can load offline after its first visit, but market data and scanner requests require the API and PostgreSQL to be running.\n\n## 5. Requirements\n
 - Go compatible with the project's `go.mod`.
 - PostgreSQL.
 - An OpenAI-compatible AI gateway for AI analysis.
@@ -107,7 +113,7 @@ MarketMindAI/
 
 ---
 
-## 5. Environment Configuration
+## 6. Environment Configuration
 
 The application reads configuration from environment variables.
 
@@ -136,7 +142,7 @@ Invalid or less-than-one AI timeout values fall back to 45 seconds.
 
 ---
 
-## 6. Running in Termux
+## 7. Running in Termux
 
 ### Step 1: Start PostgreSQL
 
@@ -425,3 +431,8 @@ No license has been declared in this repository yet. Do not assume that the proj
 
 **MarketMind AI**
 *Historical research and market intelligence.*
+
+
+### Mobile research workspace
+
+Open `/app/` on the same device as the API server. The **Research tools** section provides a parameterized workbench for the registered company, news, AI analysis, historical prices, analytics, forecast, walk-forward evaluation, backtest, paper scanner, event-study, and index endpoints. Select the relevant company/index/news IDs and date range, review request JSON where applicable, and inspect the raw API response. Destructive company deletion asks for confirmation. All market outputs remain historical/educational; the app does not place broker orders.
