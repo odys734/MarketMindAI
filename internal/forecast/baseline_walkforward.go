@@ -11,6 +11,7 @@ type BaselineWalkForwardResult struct {
 	ModelName       string                `json:"model_name"`
 	HorizonSessions int                   `json:"horizon_sessions"`
 	FoldCount       int                   `json:"fold_count"`
+	Folds           []FeatureFoldDiagnostic `json:"folds"`
 	Observations    []ForecastObservation `json:"observations"`
 	Metrics         EvaluationMetrics     `json:"metrics"`
 }
@@ -35,6 +36,7 @@ func EvaluateBaselineWalkForward(
 		ModelName:       model.Name(),
 		HorizonSessions: dataset.HorizonSessions,
 		FoldCount:       len(folds),
+		Folds:           make([]FeatureFoldDiagnostic, 0, len(folds)),
 		Observations:    make([]ForecastObservation, 0),
 	}
 
@@ -43,6 +45,7 @@ func EvaluateBaselineWalkForward(
 	}
 
 	for _, fold := range folds {
+		result.Folds = append(result.Folds, FeatureFoldDiagnostic{\n\t\t\tFoldNumber: fold.Number,\n\t\t\tTrainingObservations: len(fold.Train),\n\t\t\tTestObservations: len(fold.Test),\n\t\t\tPurgedObservations: fold.PurgedCount,\n\t\t\tTrainEndDate: fold.TrainEndDate,\n\t\t\tTestStartDate: fold.TestStartDate,\n\t\t\tTestEndDate: fold.TestEndDate,\n\t\t})
 		if err := model.Fit(fold.Train, dataset.HorizonSessions); err != nil {
 			return BaselineWalkForwardResult{}, fmt.Errorf(
 				"fit %s on fold %d: %w",
