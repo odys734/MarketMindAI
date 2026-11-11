@@ -265,6 +265,14 @@ API prefix:
 | GET | `/api/v1/companies/:id/market-analytics` | Historical stock analytics |
 | GET | `/api/v1/companies/:id/news-price-correlation` | Descriptive news-price analysis |
 
+### Historical Strategy Backtesting
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/api/v1/companies/:id/backtest` | Run a hypothetical historical SMA crossover simulation |
+
+The backtesting engine includes next-session execution, simulated commission and slippage, portfolio equity tracking, and historical performance metrics. It does not place real orders or provide investment recommendations.
+
 ### Historical Index Data
 
 | Method | Endpoint | Purpose |
@@ -365,6 +373,8 @@ The backend currently includes:
 - AI news analysis.
 - Historical stock and index data.
 - Market analytics and comparisons.
+- Historical SMA crossover backtesting with hypothetical portfolio simulation.
+- Performance metrics including CAGR, drawdown, Sharpe ratio, win rate, and profit factor.
 - Market overview.
 - Data-quality reporting.
 - Automated tests for selected components.

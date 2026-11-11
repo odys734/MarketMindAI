@@ -446,3 +446,67 @@ Current checks include unusually large daily moves, calendar gaps, and dates rep
 ### Educational-use notice
 
 MarketMind AI is a historical financial research and educational project. Historical correlations, news sentiment, AI summaries, and past price movements do not establish causation or predict future results. Nothing in this API is a personalized investment recommendation.
+
+## Historical Strategy Backtesting
+
+### POST /companies/:id/backtest
+
+Runs an educational historical SMA crossover simulation using stored company EOD price records.
+
+This endpoint does not place real orders, connect to a broker, or provide investment recommendations.
+
+**Request body:**
+
+```json
+{
+  "from": "2026-01-01",
+  "to": "2026-11-09",
+  "fast_period": 10,
+  "slow_period": 30,
+  "initial_capital": 100000,
+  "commission_bps": 10,
+  "slippage_bps": 5,
+  "annual_risk_free_rate": 0.05,
+  "provider": "tejhq"
+}
+```
+
+**Simulation behavior:**
+
+- Simulated execution occurs at the next available trading session's open.
+- Entry and exit slippage and commission are included in the hypothetical portfolio calculation.
+- The simulator supports long/flat positions, whole shares, and no leverage or short selling.
+- An open position at the end is marked to the last available closing price; it is not counted as a closed trade.
+- The engine detects crossovers after its first valid SMA comparison. It does not automatically enter a position simply because the fast SMA is already above the slow SMA at the first valid comparison.
+
+**Example:**
+
+```bash
+curl -X POST \
+  "http://127.0.0.1:8080/api/v1/companies/1/backtest" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "2026-01-01",
+    "to": "2026-11-09",
+    "fast_period": 10,
+    "slow_period": 30,
+    "initial_capital": 100000,
+    "commission_bps": 10,
+    "slippage_bps": 5,
+    "annual_risk_free_rate": 0.05,
+    "provider": "tejhq"
+  }'
+```
+
+**Responses:**
+
+| Status | Meaning |
+|---|---|
+| 200 | Backtest completed |
+| 400 | Invalid request, parameters or session limit |
+| 404 | Company not found |
+| 409 | Duplicate-date provider records or mixed providers |
+| 422 | No usable historical data or strategy/simulation validation failure |
+| 500 | Database or stored-data error |
+
+> Historical backtests are hypothetical. Results depend on data quality, strategy assumptions, transaction costs and sample period. They do not predict future performance or constitute personalized investment advice.
