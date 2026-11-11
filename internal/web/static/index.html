@@ -16,7 +16,8 @@
     <aside class="sidebar">
       <a class="brand" href="/app/"><span class="brand-mark">M</span><span>MarketMind<span class="brand-ai"> AI</span><small>RESEARCH TERMINAL</small></span></a>
       <nav class="nav">
-        <a class="nav-link active" href="#overview" data-section="overview"><span>◫</span> Overview</a>
+        <a class="nav-link active" href="#overview" data-section="overview"><span>⌂</span> Home</a>
+        <a class="nav-link" href="#predictions" data-section="predictions"><span>⌁</span> Predictions</a>
         <a class="nav-link" href="#companies" data-section="companies"><span>▤</span> Companies</a>
         <a class="nav-link" href="#priceLab" data-section="priceLab"><span>⌁</span> Price lab</a>\n        <a class="nav-link" href="#scanner" data-section="scanner"><span>⌁</span> Paper scanner</a>
         <a class="nav-link" href="#quality" data-section="quality"><span>◉</span> Data quality</a>
@@ -30,11 +31,22 @@
 
     <main class="main">
       <header class="topbar">
-        <div><div class="eyebrow">MARKET INTELLIGENCE / INDIA</div><h1>Research overview</h1></div>
+        <div><div class="eyebrow">MARKET INTELLIGENCE / INDIA</div><h1 id="pageTitle">Market snapshot</h1></div>
         <div class="top-actions"><span class="data-pill"><i></i> HISTORICAL EOD</span><button id="refreshBtn" class="icon-button" aria-label="Refresh data" title="Refresh data">↻</button></div>
       </header>
 
       <section id="overview" class="section">
+        <div class="home-prediction panel">
+          <div class="panel-heading"><div><h2>Prediction Centre</h2><p class="muted">Experimental model estimates from stored historical EOD data — not a trading signal.</p></div><span class="subtle-tag">MODEL RESEARCH</span></div>
+          <div class="prediction-controls">
+            <label>Company<select id="homeForecastCompany"><option value="">Loading companies…</option></select></label>
+            <label>Forecast horizon<select id="homeForecastHorizon"><option value="1">1 session</option><option value="5" selected>5 sessions</option><option value="10">10 sessions</option><option value="20">20 sessions</option></select></label>
+            <label>Provider<input id="homeForecastProvider" value="tejhq"></label>
+            <button class="primary-button" id="homeForecastBtn" type="button">Run model forecast →</button>
+          </div>
+          <div id="homeForecastResult" class="forecast-result"><div class="empty">Choose a company to view experimental model estimates.</div></div>
+          <div class="notice"><strong>Important</strong><span>These are uncalibrated model estimates, not guaranteed prices, probabilities, or buy/sell recommendations. Compare models and review historical out-of-sample results.</span></div>
+        </div>
         <div class="welcome-row">
           <div><h2>Market snapshot</h2><p class="muted">Latest available records stored in your database.</p></div>
           <div class="updated" id="lastUpdated">Waiting for API…</div>
@@ -48,6 +60,18 @@
         <div class="panel">
           <div class="panel-heading"><div><h3>Index watch</h3><p class="muted">Latest stored close, not live quotes</p></div><span class="subtle-tag">INDEX DATA</span></div>
           <div class="index-grid" id="indexGrid"><div class="empty">Loading index records…</div></div>
+        </div>
+      </section>
+
+      <section id="predictions" class="section">
+        <div class="section-heading"><div><h2>Prediction research</h2><p class="muted">Compare experimental forecasts with chronological out-of-sample model evaluation.</p></div><span class="subtle-tag">NO GUARANTEED ACCURACY</span></div>
+        <div class="panel">
+          <div class="prediction-controls">
+            <label>Company<select id="evalCompany"><option value="">Loading companies…</option></select></label>
+            <label>Horizons<select id="evalHorizons"><option value="1,5,10,20" selected>1, 5, 10, 20 sessions</option><option value="5">5 sessions</option><option value="10">10 sessions</option><option value="20">20 sessions</option></select></label>
+            <button class="primary-button" id="evaluateForecastBtn" type="button">Run walk-forward evaluation →</button>
+          </div>
+          <div id="forecastEvaluationResult" class="forecast-result"><div class="empty">Run an evaluation to compare model errors on historical test windows.</div></div>
         </div>
       </section>
 

@@ -1,4 +1,4 @@
-const CACHE="marketmind-shell-v2";
+const CACHE="marketmind-shell-v3";
 const SHELL=["/app/","/app/index.html","/app/styles.css","/app/app.js","/app/research-lab.css","/app/research-lab.js","/app/manifest.webmanifest","/app/icon.svg"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));

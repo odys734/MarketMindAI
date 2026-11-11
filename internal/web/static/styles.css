@@ -4,3 +4,23 @@
 @media(max-width:900px){.workbench-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.workbench-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.workbench{padding:13px}.json-label textarea{min-height:145px}.workbench-actions .primary-button{grid-column:auto;flex:1}.workbench-actions .secondary-button{flex:0 0 auto}.nav{overflow-x:auto;max-width:58vw}.nav-link{flex:0 0 auto}}
 @media(max-width:390px){.workbench-grid{grid-template-columns:1fr}}
+
+/* Multi-page navigation and prediction centre */
+.main>.section{display:none}
+.main>.section.page-active{display:block}
+.prediction-controls{display:grid;grid-template-columns:1.2fr .8fr .8fr auto;gap:12px;align-items:end}
+.prediction-controls label{display:grid;gap:7px;color:#9eacc0;font-size:10px;font-weight:650}
+.prediction-controls input,.prediction-controls select{width:100%;min-width:0;background:#0a1422;border:1px solid #2a3c55;border-radius:10px;padding:11px 12px;color:var(--text);font:inherit;font-size:12px}
+.home-prediction{margin:20px 0 4px;padding:20px;border-color:#28505a;background:linear-gradient(145deg,#142b3b,#101a2a)}
+.home-prediction .panel-heading{align-items:flex-start}
+.forecast-result{margin-top:14px}
+.forecast-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.forecast-summary>div,.forecast-model{background:#0b1524;border:1px solid #263850;border-radius:11px;padding:12px}
+.forecast-summary span,.forecast-model span{display:block;color:#8193aa;font-size:9px;text-transform:uppercase;letter-spacing:.7px}
+.forecast-summary b{display:block;margin-top:7px;font-size:13px}
+.forecast-models{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.forecast-model strong{display:block;font-size:18px;margin:9px 0 4px}
+.forecast-model>b{font-size:12px}
+@media(max-width:850px){.prediction-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.forecast-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.prediction-controls{grid-template-columns:1fr 1fr}.prediction-controls .primary-button{grid-column:1/-1}.forecast-models{grid-template-columns:1fr}.home-prediction{padding:14px}.nav{max-width:70vw}}
+@media(max-width:390px){.prediction-controls{grid-template-columns:1fr}.prediction-controls .primary-button{grid-column:auto}}
