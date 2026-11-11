@@ -591,7 +591,7 @@ Scans up to 100 Indian NSE/BSE companies already stored in the local database an
 ```
 
 - `budget` is required and must be positive.
-- `style` currently supports `swing` and `long_term`. Intraday is deliberately rejected because the configured source stores EOD bars, not intraday candles.
+- `style` currently supports only `swing`. Intraday is rejected because the configured source stores EOD bars, not intraday candles; long-term mode is also deferred until longer-horizon fundamental research is implemented.
 - `risk_percent` defaults to 1 and is capped at 2 percent of the submitted budget.
 - `max_candidates` defaults to 10 and is limited to 20.
 - `provider` defaults to `tejhq`.
@@ -599,7 +599,7 @@ Scans up to 100 Indian NSE/BSE companies already stored in the local database an
 
 The response contains the number of companies scanned, eligible and skipped, ranked research candidates, latest stored date, indicator values, hypothetical entry/stop/targets, simulated quantity, capital required, estimated price risk, entry conditions, invalidation and exit rules.
 
-This first version is a historical EOD paper-research screen, not a complete exchange-wide live scanner. It only scans companies already recorded in the `companies` table (up to 100), and only where sufficient stored history exists for the selected provider. It does not include brokerage, taxes, slippage, fundamentals, live quotes, intraday candles, broker integration or order execution. Long-term mode is technical-only. The score is a transparent heuristic, not a calibrated probability or prediction.
+This first version is a historical EOD paper-research screen, not a complete exchange-wide live scanner. It only scans companies already recorded in the `companies` table (up to 100), and only where sufficient stored history exists for the selected provider. It does not include brokerage, taxes, slippage, fundamentals, live quotes, intraday candles, broker integration or order execution. Long-term research is not yet implemented. The score is a transparent heuristic, not a calibrated probability or prediction.
 
 **Example:**
 
