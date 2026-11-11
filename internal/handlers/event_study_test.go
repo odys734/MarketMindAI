@@ -117,6 +117,9 @@ func TestEventStudySuccessfulCalculation(t *testing.T) {
 
 	for _, expected := range []string{
 		`"completed":1`,
+		`"analytics_status":"insufficient_completed_events"`,
+		`"analytics_confidence_level":0.95`,
+		`"analytics":null`,
 		`"insufficient_data":0`,
 		`"car_pct":`,
 		`"abnormal_return_pct":`,

@@ -162,6 +162,7 @@ func (h *EventStudyHandler) Get(c *gin.Context) {
 
 	results := make([]eventStudyItem, 0, len(events))
 	successful := 0
+	completedResults := make([]eventstudy.Result, 0, len(events))
 
 	for _, article := range events {
 		item := eventStudyItem{
@@ -184,10 +185,32 @@ func (h *EventStudyHandler) Get(c *gin.Context) {
 		} else {
 			item.Status = "completed"
 			item.Result = &calculated
+			completedResults = append(completedResults, calculated)
 			successful++
 		}
 
 		results = append(results, item)
+	}
+
+	analyticsStatus := "insufficient_completed_events"
+	analyticsConfidence := 0.95
+	var analytics *eventstudy.AnalyticsResult
+
+	if len(completedResults) >= 2 {
+		if hasOverlappingEventWindows(completedResults) {
+			analyticsStatus = "overlapping_event_windows"
+		} else {
+			calculated, analyticsErr := eventstudy.CalculateAnalytics(
+				completedResults,
+				analyticsConfidence,
+			)
+			if analyticsErr != nil {
+				analyticsStatus = "calculation_failed"
+			} else {
+				analyticsStatus = "completed"
+				analytics = &calculated
+			}
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -205,11 +228,14 @@ func (h *EventStudyHandler) Get(c *gin.Context) {
 			"post_sessions":  post,
 			"stock_provider": stockProvider,
 		},
-		"count":             len(results),
-		"completed":         successful,
-		"insufficient_data": len(results) - successful,
-		"events":            results,
-		"method":            "Market-adjusted event study: daily stock simple returns minus daily benchmark simple returns. CAR is the arithmetic sum of abnormal returns.",
+		"count":                      len(results),
+		"completed":                  successful,
+		"insufficient_data":          len(results) - successful,
+		"events":                     results,
+		"analytics_status":           analyticsStatus,
+		"analytics_confidence_level": analyticsConfidence,
+		"analytics":                  analytics,
+		"method":                     "Market-adjusted event study: daily stock simple returns minus daily benchmark simple returns. CAR is the arithmetic sum of abnormal returns.",
 		"data_limitations": []string{
 			"Only AI-analyzed news with non-null published_at timestamps is included.",
 			"Publication dates are mapped to the first available stock trading session on or after the publication date.",
@@ -220,6 +246,20 @@ func (h *EventStudyHandler) Get(c *gin.Context) {
 			"This is historical educational research, not investment advice or a prediction.",
 		},
 	})
+}
+
+// hasOverlappingEventWindows conservatively rejects inclusive window overlaps.
+func hasOverlappingEventWindows(results []eventstudy.Result) bool {
+	for i := 0; i < len(results); i++ {
+		for j := i + 1; j < len(results); j++ {
+			a, b := results[i], results[j]
+			if !a.WindowEnd.Before(b.WindowStart) &&
+				!b.WindowEnd.Before(a.WindowStart) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func parseEventWindow(raw string, defaultValue int) (int, error) {
