@@ -42,6 +42,7 @@ func (m *RidgeRegression) Metadata() map[string]any {
 		"lambda":                        m.Lambda,
 		"feature_count":                 ridgeFeatureCount,
 		"minimum_complete_observations": ridgeFeatureCount + 2,
+		"training_observations":         m.sampleCount,
 	}
 }
 
