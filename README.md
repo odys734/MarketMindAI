@@ -42,7 +42,7 @@ It combines company information, news collection, AI-assisted news interpretatio
 - Calculate hypothetical ATR-based entry zones, stop-loss and reward levels.
 - Calculate whole-share simulated quantity subject to budget and a capped price-risk budget.
 - Return entry conditions, invalidation rules, exit scenarios and data limitations.
-- Intraday mode is rejected until a genuine intraday data source is integrated; long-term mode is technical-only.
+- Intraday and long-term modes are deferred until suitable intraday feeds and longer-horizon fundamental research are implemented.
 
 ### Data Quality
 - Flag unusually large daily movements.
