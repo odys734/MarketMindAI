@@ -73,8 +73,21 @@ func BuildPlan(bars []Bar, req Request) (Plan, error) {
 	last:=bars[len(bars)-1]
 	if !finitePositive(atr) || !finitePositive(ema20) || !finitePositive(avgVol) { return out, errors.New("insufficient valid indicator data") }
 	// This is a historical EOD research screen, not an executable trade signal.
-	if last.Close <= ema20 || ema5 <= ema20 || rsi < 45 || rsi > 70 || float64(last.Volume) <= 0 {
-		return out, errors.New("latest bar does not pass the documented trend, RSI and volume screen")
+	// Keep each rejection reason distinct so API clients can explain skipped symbols.
+	if last.Close <= ema20 {
+		return out, errors.New("latest close is not above EMA20")
+	}
+	if ema5 <= ema20 {
+		return out, errors.New("EMA5 is not above EMA20")
+	}
+	if rsi < 45 {
+		return out, errors.New("RSI14 is below 45")
+	}
+	if rsi > 70 {
+		return out, errors.New("RSI14 is above 70")
+	}
+	if last.Volume <= 0 {
+		return out, errors.New("latest volume is zero")
 	}
 	entryLow:=last.Close-0.25*atr; entryHigh:=last.Close+0.25*atr
 	stop:=last.Close-1.5*atr; riskPerShare:=entryHigh-stop
