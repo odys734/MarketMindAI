@@ -26,6 +26,7 @@ func TestForecastEvaluationRejectsInvalidConfiguration(t *testing.T) {
 		{"minimum training exceeds initial", `{"initial_train_size":40,"minimum_train_size":50}`},
 		{"test step overlaps", `{"test_size":20,"step_size":10}`},
 		{"invalid ridge lambda", `{"ridge_lambda":-1}`},
+		{"zero ridge lambda", `{"ridge_lambda":0}`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
