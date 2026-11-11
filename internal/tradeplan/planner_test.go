@@ -45,3 +45,10 @@ func TestBuildPlanRejectsInsufficientHistory(t *testing.T) {
 		t.Fatal("expected insufficient history error")
 	}
 }
+
+func TestBuildPlanRejectsUnsupportedLongTermMode(t *testing.T) {
+	_, err := BuildPlan(sampleBars(), Request{Budget: 10000, Style: "long_term", RiskPercent: 1, MaxCandidates: 5})
+	if err == nil {
+		t.Fatal("expected long-term mode to be rejected until fundamental research is available")
+	}
+}
