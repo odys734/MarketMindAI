@@ -9,7 +9,7 @@ import (
 func sampleBars() []Bar {
 	bars := make([]Bar, 60)
 	for i := range bars {
-		price := 100.0 + float64(i)*0.18 + math.Sin(float64(i)*1.7)*0.45
+		price := 100.0 + float64(i)*0.06 + math.Sin(float64(i)*1.7)*0.45
 		bars[i] = Bar{
 			Date: time.Date(2026, 1, 1+i, 0, 0, 0, 0, time.UTC),
 			Open: price - 0.1, High: price + 0.8, Low: price - 0.8,
