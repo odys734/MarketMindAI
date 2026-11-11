@@ -73,6 +73,7 @@ func (h *TradePlannerHandler) Scan(c *gin.Context) {
 
 	candidates:=make([]tradeplan.RankedPlan,0)
 	skipped:=0
+	skipReasons:=make(map[string]int)
 	for _,company:=range companies {
 		priceRows,queryErr:=h.DB.QueryContext(c.Request.Context(),`
 			SELECT trading_date::text,open::float8,high::float8,low::float8,close::float8,volume
@@ -99,14 +100,14 @@ func (h *TradePlannerHandler) Scan(c *gin.Context) {
 		// SQL returns newest-first; the planner requires chronological bars.
 		for left,right:=0,len(bars)-1; left<right; left,right=left+1,right-1 { bars[left],bars[right]=bars[right],bars[left] }
 		plan,planErr:=tradeplan.BuildPlan(bars,tradeplan.Request{Budget:req.Budget,Style:req.Style,RiskPercent:req.RiskPercent,MaxCandidates:req.MaxCandidates})
-		if planErr!=nil { skipped++; continue }
+		if planErr!=nil { skipped++; skipReasons[planErr.Error()]++; continue }
 		candidates=append(candidates,tradeplan.RankedPlan{CompanyID:company.ID,CompanyName:company.Name,Symbol:company.Symbol,Exchange:company.Exchange,Currency:company.Currency,Plan:plan})
 	}
 	candidates=tradeplan.Rank(candidates,req.MaxCandidates)
 	c.JSON(http.StatusOK,gin.H{
 		"mode":"historical_eod_paper_trade_research",
 		"configuration":gin.H{"budget":req.Budget,"style":req.Style,"risk_percent":req.RiskPercent,"max_candidates":req.MaxCandidates,"provider":req.Provider,"exchange":req.Exchange},
-		"universe":gin.H{"companies_scanned":len(companies),"eligible_candidates":len(candidates),"skipped_or_insufficient_data":skipped,"universe_limit":100},
+		"universe":gin.H{"companies_scanned":len(companies),"eligible_candidates":len(candidates),"skipped_or_insufficient_data":skipped,"skip_reasons":skipReasons,"universe_limit":100},
 		"candidates":candidates,
 		"notice":"Educational paper-trading research only. Prices are the latest stored end-of-day observations, not live quotes. Entry zones, stops, targets and quantities are hypothetical calculations, not buy/sell recommendations. Brokerage, taxes, slippage, corporate actions and fundamentals are not included. No real orders are placed.",
 	})
