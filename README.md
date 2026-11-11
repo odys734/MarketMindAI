@@ -436,3 +436,10 @@ No license has been declared in this repository yet. Do not assume that the proj
 ### Mobile research workspace
 
 Open `/app/` on the same device as the API server. The **Research tools** section provides a parameterized workbench for the registered company, news, AI analysis, historical prices, analytics, forecast, walk-forward evaluation, backtest, paper scanner, event-study, and index endpoints. Select the relevant company/index/news IDs and date range, review request JSON where applicable, and inspect the raw API response. Destructive company deletion asks for confirmation. All market outputs remain historical/educational; the app does not place broker orders.
+
+
+### Historical Price Lab
+
+The mobile dashboard includes a price explorer for stored company EOD observations. It renders a close-price chart with SMA 20, computes descriptive SMA 20/50, Wilder RSI 14, MACD 12/26/9, maximum observed drawdown and a 20-session annualized volatility estimate, and displays the latest eight sessions. The explorer can export the loaded observations to CSV. A small watchlist is stored locally in the browser and is not synced to the server.
+
+A company-registration form is also available in the dashboard. Company IDs are selected from the existing company-list API. The price explorer reads existing stored data only; use the Research Tools workbench to request a historical sync. Data coverage depends on the selected instrument, provider and date range. Indicators are descriptive historical calculations, not forecasts or investment advice.

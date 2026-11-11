@@ -25,6 +25,9 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: Check dashboard JavaScript syntax
+        run: node --check internal/web/static/app.js && node --check internal/web/static/research-lab.js
+
       - name: Run tests
         run: go test -count=1 ./...
 
