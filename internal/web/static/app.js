@@ -55,11 +55,11 @@ const toolDefinitions=[
  {id:"index-sync",label:"Sync index historical prices",method:"POST",path:v=>"/indices/"+v.index+"/prices/sync?from="+v.from+"&to="+v.to,confirm:"Fetch and store historical index data?"},
  {id:"index-prices",label:"Get index price history",method:"GET",path:v=>"/indices/"+v.index+"/prices?from="+v.from+"&to="+v.to+"&limit=500"},
  {id:"index-analytics",label:"Index analytics",method:"GET",path:v=>"/indices/"+v.index+"/analytics?days="+Math.max(2,v.days)},
- {id:"indices-compare",label:"Compare two market indices",method:"GET",path:v=>"/indices/compare?left_id="+v.index+"&right_id="+(v.index+1)+"&days="+Math.max(2,v.days)},
+ {id:"indices-compare",label:"Compare two market indices",method:"GET",path:v=>"/indices/compare?left_id="+v.index+"&right_id="+v.rightIndex+"&days="+Math.max(2,v.days)},
  {id:"company-index",label:"Compare company with index",method:"GET",path:v=>"/companies/"+v.company+"/compare/indices/"+v.index+"?days="+Math.max(2,v.days)}
 ];
 function selectedTool(){return toolDefinitions.find(x=>x.id===$("toolOperation").value)||toolDefinitions[0];}
-function toolValues(){return {company:Math.max(1,Number($("toolCompanyId").value)||1),index:Math.max(1,Number($("toolIndexId").value)||1),news:Math.max(1,Number($("toolNewsId").value)||1),from:$("toolFrom").value,to:$("toolTo").value,days:Math.max(1,Number($("toolDays").value)||30),provider:$("toolProvider").value.trim()||"tejhq",query:""};}
+function toolValues(){return {company:Math.max(1,Number($("toolCompanyId").value)||1),index:Math.max(1,Number($("toolIndexId").value)||1),rightIndex:Math.max(1,Number($("toolRightIndexId").value)||2),news:Math.max(1,Number($("toolNewsId").value)||1),from:$("toolFrom").value,to:$("toolTo").value,days:Math.max(1,Number($("toolDays").value)||30),provider:$("toolProvider").value.trim()||"tejhq",query:""};}
 function setToolBody(){const item=selectedTool();$("toolBody").value=item.body?JSON.stringify(item.body,null,2):"{}";$("toolBody").disabled=!item.body&&item.method!=="POST"&&item.method!=="PUT";}
 function setupWorkbench(){
  const select=$("toolOperation");if(!select)return;
