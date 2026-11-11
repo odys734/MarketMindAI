@@ -28,6 +28,7 @@ func TestForecastRejectsInvalidRequests(t *testing.T) {
 		{name: "invalid JSON", path: "/companies/1/forecast", body: "{invalid}"},
 		{name: "unsupported horizon", path: "/companies/1/forecast", body: "{\"horizon_sessions\":2}"},
 		{name: "negative lambda", path: "/companies/1/forecast", body: "{\"horizon_sessions\":5,\"ridge_lambda\":-1}"},
+		{name: "zero lambda", path: "/companies/1/forecast", body: "{\"horizon_sessions\":5,\"ridge_lambda\":0}"},
 		{name: "provider too long", path: "/companies/1/forecast", body: "{\"horizon_sessions\":5,\"provider\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"}"},
 	}
 
