@@ -1,0 +1,448 @@
+# MarketMind AI — API Reference
+
+**Base URL:** `http://127.0.0.1:8080/api/v1`
+
+All endpoints use JSON unless otherwise stated.
+
+## General conventions
+
+- Company and index IDs must be positive integers.
+- Dates use `YYYY-MM-DD`.
+- Historical price endpoints return stored records, not live quotes.
+- Unless specified otherwise, errors return JSON containing an `error` field.
+- The API currently has no authentication middleware. Do not expose it publicly without adding authentication and access controls.
+
+## Health
+
+### GET /health
+
+Checks API and database health.
+
+Example:
+
+```bash
+curl http://127.0.0.1:8080/api/v1/health
+Great! Ab stock aur index dono ke sync responses bhi confirm ho gaye hain. API documentation ke liye required details available hain.
+
+Ek important distinction: Stock historical prices TejHQ se aate hain, jabki index historical prices Yahoo Finance chart endpoint se. Dono historical EOD data hain—live market feed nahi.
+
+### Step 1 — `docs/API.md` create karo
+
+Termux mein ye poora command run karo:
+
+````bash
+cd ~/MarketMindAI
+
+cat > docs/API.md <<'EOF'
+# MarketMind AI — API Reference
+
+**Base URL:** `http://127.0.0.1:8080/api/v1`
+
+All endpoints use JSON unless otherwise stated.
+
+## General conventions
+
+- Company and index IDs must be positive integers.
+- Dates use `YYYY-MM-DD`.
+- Historical price endpoints return stored records, not live quotes.
+- Unless specified otherwise, errors return JSON containing an `error` field.
+- The API currently has no authentication middleware. Do not expose it publicly without adding authentication and access controls.
+
+## Health
+
+### GET /health
+
+Checks API and database health.
+
+Example:
+
+```bash
+curl http://127.0.0.1:8080/api/v1/health
+````
+
+### Companies
+
+### POST /companies
+
+Creates a company.
+
+Request:
+
+```json
+{
+  "name": "Company Name",
+  "symbol": "SYMBOL",
+  "exchange": "NSE",
+  "country": "India",
+  "sector": "Technology",
+  "industry": "Software",
+  "currency": "INR",
+  "website": "https://example.com"
+}
+```
+
+Required: `name`, `symbol`, `exchange`, `country`.
+
+Success: `201 Created`, with the created company in `data`.
+
+Possible errors: `400` invalid input, `409` duplicate symbol/exchange.
+
+### GET /companies
+
+Lists companies.
+
+Query parameters:
+
+| Parameter | Default | Description       |
+| --------- | ------- | ----------------- |
+| limit     | 20      | 1–100             |
+| offset    | 0       | Pagination offset |
+| search    | —       | Company search    |
+| exchange  | —       | Exchange filter   |
+| country   | —       | Country filter    |
+
+Example:
+
+```bash
+curl "http://127.0.0.1:8080/api/v1/companies?limit=20&offset=0"
+```
+
+Response contains `data`, `limit`, and `offset`.
+
+### GET /companies/:id
+
+Returns one company.
+
+### PUT /companies/:id
+
+Updates a company using the company request fields.
+
+### DELETE /companies/:id
+
+Deletes a company. Success returns `204 No Content`.
+
+Invalid IDs return `400`; missing companies return `404`.
+
+### News
+
+### POST /news/collect
+
+Collects news using GDELT DOC 2.0 and associates articles with a company.
+
+Query parameters:
+
+| Parameter  | Required | Description                            |
+| ---------- | -------- | -------------------------------------- |
+| company_id | Yes      | Positive company ID                    |
+| query      | No       | Search query; defaults to company name |
+
+Example:
+
+```bash
+curl -X POST \
+  "http://127.0.0.1:8080/api/v1/news/collect?company_id=1"
+```
+
+The current collector requests up to 20 articles over a seven-day window. Requests are spaced by at least five seconds in the running process.
+
+Success response includes:
+
+* `status`
+
+* `company`
+
+* `query`
+
+* `articles_processed`
+
+* `new_company_links`
+
+* `provider`
+
+* `message`
+
+Possible errors: `400`, `404`, `429`, `502`, `500`.
+
+Data caveat: GDELT's `seendate` is an observation date and should not automatically be interpreted as the publisher's verified publication timestamp.
+
+### GET /companies/:id/news
+
+Returns stored news for a company.
+
+| Parameter | Default | Range |
+| --------- | ------- | ----- |
+| limit     | 20      | 1–100 |
+
+Example:
+
+```bash
+curl "http://127.0.0.1:8080/api/v1/companies/1/news?limit=20"
+```
+
+Response contains `company_id`, `count`, and `data`.
+
+Article records may include title, URL, domain, language, source country, timestamps, relevance category, relevance score, and relevance reason.
+
+### AI news analysis
+
+### POST /companies/:id/news/analyze
+
+Runs the company's news relevance analysis.
+
+### POST /companies/:id/news/:news_id/analyze-ai
+
+Runs AI analysis for a particular linked news article.
+
+### POST /companies/:id/analyze-ai-batch
+
+Runs AI analysis on a limited batch of relevant, not-yet-analyzed articles.
+
+| Parameter | Default | Range |
+| --------- | ------- | ----- |
+| limit     | 5       | 1–5   |
+
+Example:
+
+```bash
+curl -X POST \
+  "http://127.0.0.1:8080/api/v1/companies/1/analyze-ai-batch?limit=5"
+```
+
+The batch selects direct, sector, and macro relevance categories. Already analyzed articles are excluded.
+
+### GET /companies/:id/news/:news_id/analysis-ai
+
+Returns the saved AI analysis for a linked article.
+
+### GET /companies/:id/news/analyses-ai
+
+Returns saved AI analyses for a company.
+
+| Parameter | Default | Range        |
+| --------- | ------- | ------------ |
+| limit     | 20      | 1–100        |
+| offset    | 0       | 0 or greater |
+
+### GET /companies/:id/intelligence
+
+Returns the company's combined intelligence view.
+
+### GET /companies/:id/sentiment-history
+
+Returns historical counts of saved AI news sentiment classifications.
+
+| Parameter | Default | Range |
+| --------- | ------- | ----- |
+| days      | 30      | 1–365 |
+
+The sentiment counts describe analyzed news, not stock returns or price performance.
+
+### Company historical market data
+
+### POST /companies/:id/prices/sync
+
+Fetches and stores historical EOD prices through TejHQ.
+
+Required query parameters:
+
+| Parameter | Format     |
+| --------- | ---------- |
+| from      | YYYY-MM-DD |
+| to        | YYYY-MM-DD |
+
+Maximum requested range: 365 days. Currently supported exchanges: NSE and BSE.
+
+Example:
+
+```bash
+curl -X POST \
+  "http://127.0.0.1:8080/api/v1/companies/1/prices/sync?from=2026-11-01&to=2026-11-10"
+```
+
+Success response includes company, symbol, exchange, provider, data type, latest trading date, provider publication timestamp, requested dates, and records saved.
+
+Provider: `TejHQ`.
+
+### GET /companies/:id/prices
+
+Returns stored historical company prices.
+
+| Parameter | Default | Description         |
+| --------- | ------- | ------------------- |
+| from      | —       | Optional start date |
+| to        | —       | Optional end date   |
+| limit     | 100     | 1–500               |
+
+Example:
+
+```bash
+curl \
+  "http://127.0.0.1:8080/api/v1/companies/1/prices?from=2026-11-01&to=2026-11-10&limit=100"
+```
+
+Response includes company, symbol, exchange, `data_type`, count, requested date filters, and `data`.
+
+Price records include trading date, OHLC, last, previous close, daily change percentage, volume, turnover, trades, provider, and fetched timestamp.
+
+### Market indices
+
+### POST /indices/:id/prices/sync
+
+Fetches and stores historical daily index prices using the Yahoo Finance chart endpoint.
+
+Required query parameters: `from`, `to`, both in `YYYY-MM-DD` format.
+
+Maximum requested range: 365 days.
+
+Example:
+
+```bash
+curl -X POST \
+  "http://127.0.0.1:8080/api/v1/indices/1/prices/sync?from=2026-11-01&to=2026-11-10"
+```
+
+Success response includes index, symbol, provider symbol, exchange, currency, provider, data type, requested dates, and records saved.
+
+### GET /indices/:id/prices
+
+Returns stored historical daily index prices.
+
+| Parameter | Default | Description         |
+| --------- | ------- | ------------------- |
+| from      | —       | Optional start date |
+| to        | —       | Optional end date   |
+| limit     | 100     | 1–1000              |
+
+Example:
+
+```bash
+curl \
+  "http://127.0.0.1:8080/api/v1/indices/1/prices?limit=100"
+```
+
+Response includes index, symbol, exchange, currency, count, date filters, limit, and `data`.
+
+Each price record includes trading date, OHLC, daily change percentage, nullable volume, provider, and fetched timestamp.
+
+### Analytics and comparisons
+
+### GET /companies/:id/market-analytics
+
+Returns stored company market analytics.
+
+`days`: default 30; valid range 1–365.
+
+### GET /indices/:id/analytics
+
+Returns stored index analytics.
+
+`days`: default 30; valid range 2–3650.
+
+### GET /indices/compare
+
+Compares two different indices.
+
+Required: `left_id`, `right_id`.
+
+Optional: `days`, default 30; valid range 2–3650.
+
+Example:
+
+```bash
+curl \
+  "http://127.0.0.1:8080/api/v1/indices/compare?left_id=1&right_id=2&days=30"
+```
+
+### GET /companies/:id/compare/indices/:index_id
+
+Compares a company's stored historical performance with an index.
+
+`days`: default 30; valid range 2–3650.
+
+### News and historical price observations
+
+### GET /companies/:id/news-price-correlation
+
+Returns observations pairing analyzed company news with nearby historical stock-price sessions.
+
+Query parameters:
+
+| Parameter | Default | Range |
+|---|---:|---:|
+| `limit` | 50 | 1–100 |
+
+Example:
+
+```bash
+curl "http://127.0.0.1:8080/api/v1/companies/1/news-price-correlation?limit=50"
+```
+
+Notes:
+
+- News dates currently represent GDELT observation dates, not verified publication timestamps.
+- A price movement after an observation does not establish that the news caused it.
+- Missing event-session prices are returned as empty values.
+- Small samples cannot establish reliable statistical correlation.
+- This endpoint is an exploratory historical comparison, not a prediction or investment recommendation.
+
+## Market overview and data quality
+
+### GET /market/overview
+
+Returns a summary based on stored market observations.
+
+```bash
+curl http://127.0.0.1:8080/api/v1/market/overview
+```
+
+This is a stored historical-data overview, not a live market feed.
+
+### GET /market/data-quality
+
+Returns data-quality checks for stored market records.
+
+```bash
+curl http://127.0.0.1:8080/api/v1/market/data-quality
+```
+
+Current checks include unusually large daily moves, calendar gaps, and dates reported by multiple providers. These checks identify records for review; they do not certify source accuracy.
+
+### Common HTTP status codes
+
+| Status | Meaning                                 |
+| ------ | --------------------------------------- |
+| 200    | Request successful                      |
+| 201    | Resource created                        |
+| 204    | Resource deleted successfully           |
+| 400    | Invalid request or parameters           |
+| 404    | Resource not found                      |
+| 409    | Duplicate/conflicting resource          |
+| 429    | Provider rate limit                     |
+| 500    | Internal server/database error          |
+| 502    | External provider or AI gateway failure |
+
+### Data source limitations
+
+* GDELT DOC 2.0: News discovery; observation timestamps are not necessarily verified publication timestamps.
+
+* TejHQ: Historical NSE/BSE stock EOD data. Provider status metadata may contain a publication timestamp.
+
+* Yahoo Finance chart endpoint: Unofficial historical index data. Index volume can be unavailable or incomparable with stock volume.
+
+* AI gateway: AI-generated summaries and classifications can be incomplete or incorrect. Review source articles and uncertainty fields.
+
+### Security and deployment notes
+
+* The current API does not register authentication middleware.
+
+* Do not expose the development API directly to the public internet.
+
+* Review database SSL settings before using a remote database.
+
+* Keep API keys and credentials in environment variables, never in source control.
+
+* Apply request authentication, authorization, rate limits, and input validation before production deployment.
+
+### Educational-use notice
+
+MarketMind AI is a historical financial research and educational project. Historical correlations, news sentiment, AI summaries, and past price movements do not establish causation or predict future results. Nothing in this API is a personalized investment recommendation.

@@ -1,0 +1,26 @@
+# Secrets and environment
+.env
+.env.*
+!.env.example
+
+# Compiled binaries
+/marketmind
+/cmd/indexcheck/indexcheck
+
+# Logs
+*.log
+
+# Databases and local data
+*.db
+*.sqlite
+*.sqlite3
+
+# Test and coverage output
+coverage.out
+coverage.html
+*.test
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
