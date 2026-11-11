@@ -513,3 +513,59 @@ The response includes the latest stored session date and close, provider, datase
 The endpoint fits Ridge Regression using historical rows whose forward-return labels are available by the latest stored session, then predicts from technical features at that latest session. It does not return calibrated probabilities, confidence intervals or walk-forward accuracy metrics. The baseline models are comparisons, not evidence that any model has predictive skill.
 
 > Forecast outputs are experimental historical-data model estimates, not guaranteed prices, trading signals or personalized investment advice.
+
+
+## Walk-forward Forecast Evaluation
+
+### POST /companies/:id/forecast/evaluate
+
+Runs a chronological, expanding-window out-of-sample comparison for Ridge Regression, Zero Return and Historical Mean using stored historical EOD prices. Unlike the single forecast endpoint, this endpoint evaluates predictions against subsequently observed forward returns.
+
+**Request body:**
+
+```json
+{
+  "provider": "tejhq",
+  "horizons": [1, 5, 10, 20],
+  "initial_train_size": 80,
+  "minimum_train_size": 30,
+  "test_size": 20,
+  "step_size": 20,
+  "ridge_lambda": 1.0
+}
+```
+
+All fields are optional:
+- `provider`: selects one consistent stored data provider. If omitted, mixed-provider or duplicate-date data returns 409.
+- `horizons`: one or more unique values from 1, 5, 10 and 20. Defaults to all four.
+- `initial_train_size`: initial number of dataset rows before the first test fold; defaults to 80.
+- `minimum_train_size`: minimum rows remaining after purging overlapping target labels; defaults to 30.
+- `test_size`: observations per test fold; defaults to 20.
+- `step_size`: distance between test fold starts; defaults to `test_size`. Overlapping test windows are rejected.
+- `ridge_lambda`: positive finite Ridge regularization; defaults to 1.0.
+
+The endpoint processes at most 5,000 historical sessions and requires at least 100 sessions. Each fold trains only on earlier observations; training labels whose target dates reach or overlap the test period are purged. Ridge preprocessing is fitted inside each training fold. Model metrics are calculated from aligned out-of-sample observations only.
+
+The experiment report includes each horizon's dataset date range, complete/incomplete row counts, model comparisons, fold counts, MAE, RMSE, mean error, directional accuracy and fold diagnostics. It does not automatically select a winning model.
+
+**Example:**
+
+```bash
+curl -X POST \
+  "http://127.0.0.1:8080/api/v1/companies/1/forecast/evaluate" \
+  -H "Content-Type: application/json" \
+  -d '{"provider":"tejhq","horizons":[5,20],"initial_train_size":80,"minimum_train_size":30,"test_size":20,"step_size":20,"ridge_lambda":1.0}'
+```
+
+**Responses:**
+
+| Status | Meaning |
+|---|---|
+| 200 | Walk-forward evaluation completed |
+| 400 | Invalid ID, JSON, horizons or validation configuration |
+| 404 | Company not found |
+| 409 | Duplicate dates or mixed providers |
+| 422 | Insufficient history or a fold/model could not be evaluated |
+| 500 | Database or stored-data error |
+
+> Historical out-of-sample performance is descriptive, not a guarantee of future accuracy. A lower error in one sample does not establish predictive skill or provide an investment recommendation.
