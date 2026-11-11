@@ -28,7 +28,7 @@ type ForecastEvaluationRequest struct {
 	MinimumTrainSize    int     `json:"minimum_train_size"`
 	TestSize            int     `json:"test_size"`
 	StepSize            int     `json:"step_size"`
-	RidgeLambda         float64 `json:"ridge_lambda"`
+	RidgeLambda         *float64 `json:"ridge_lambda,omitempty"`
 }
 
 // ForecastEvaluationHandler runs leakage-aware walk-forward model comparisons.
@@ -87,8 +87,9 @@ func (h *ForecastEvaluationHandler) Run(c *gin.Context) {
 	if request.StepSize == 0 {
 		request.StepSize = request.TestSize
 	}
-	if request.RidgeLambda == 0 {
-		request.RidgeLambda = defaultForecastRidgeLambda
+	ridgeLambda := defaultForecastRidgeLambda
+	if request.RidgeLambda != nil {
+		ridgeLambda = *request.RidgeLambda
 	}
 
 	if request.InitialTrainSize < 20 || request.InitialTrainSize > 2000 ||
@@ -100,8 +101,8 @@ func (h *ForecastEvaluationHandler) Run(c *gin.Context) {
 		})
 		return
 	}
-	if math.IsNaN(request.RidgeLambda) || math.IsInf(request.RidgeLambda, 0) ||
-		request.RidgeLambda <= 0 || request.RidgeLambda > 1e6 {
+	if math.IsNaN(ridgeLambda) || math.IsInf(ridgeLambda, 0) ||
+		ridgeLambda <= 0 || ridgeLambda > 1e6 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ridge_lambda must be finite, greater than zero and no greater than 1000000"})
 		return
 	}
@@ -213,7 +214,7 @@ func (h *ForecastEvaluationHandler) Run(c *gin.Context) {
 		TestSize:         request.TestSize,
 		StepSize:         request.StepSize,
 	}
-	lambda := request.RidgeLambda
+	lambda := ridgeLambda
 	factories := []forecast.ForecastModelFactory{
 		{NewBaseline: func() forecast.BaselineModel { return &forecast.ZeroReturnBaseline{} }},
 		{NewBaseline: func() forecast.BaselineModel { return &forecast.HistoricalMeanBaseline{} }},
