@@ -34,6 +34,7 @@ func Register(app *gin.Engine, db *sql.DB, aiClient *ai.Client) {
 	overview := &handlers.MarketOverviewHandler{DB: db}
 	dataQuality := &handlers.DataQualityHandler{DB: db}
 	backtestHandler := &handlers.BacktestHandler{DB: db}
+	eventStudyHandler := &handlers.EventStudyHandler{DB: db}
 
 	v1 := app.Group("/api/v1")
 	{
@@ -63,6 +64,7 @@ func Register(app *gin.Engine, db *sql.DB, aiClient *ai.Client) {
 		v1.GET("/market/overview", overview.Get)
 		v1.GET("/market/data-quality", dataQuality.Get)
 		v1.POST("/companies/:id/backtest", backtestHandler.Run)
+		v1.GET("/companies/:id/event-study", eventStudyHandler.Get)
 		v1.GET("/indices/:id/analytics", indexData.GetAnalytics)
 		v1.GET("/indices/compare", indexData.CompareIndices)
 		v1.GET("/companies/:id/compare/indices/:index_id", indexData.CompareCompanyIndex)
