@@ -569,3 +569,44 @@ curl -X POST \
 | 500 | Database or stored-data error |
 
 > Historical out-of-sample performance is descriptive, not a guarantee of future accuracy. A lower error in one sample does not establish predictive skill or provide an investment recommendation.
+
+
+## Budget-based paper trade research scanner
+
+### POST /trade-planner/scan
+
+Scans up to 100 Indian NSE/BSE companies already stored in the local database and evaluates those with at least 30 stored TejHQ EOD sessions. It ranks candidates using a simple, transparent technical screen (EMA trend, RSI range and positive volume), then calculates a hypothetical entry zone, ATR-based stop, two reward levels and a whole-share quantity constrained by both budget and a configurable price-risk budget.
+
+**Request:**
+
+```json
+{
+  "budget": 10000,
+  "style": "swing",
+  "risk_percent": 1,
+  "max_candidates": 10,
+  "provider": "tejhq",
+  "exchange": "NSE"
+}
+```
+
+- `budget` is required and must be positive.
+- `style` currently supports `swing` and `long_term`. Intraday is deliberately rejected because the configured source stores EOD bars, not intraday candles.
+- `risk_percent` defaults to 1 and is capped at 2 percent of the submitted budget.
+- `max_candidates` defaults to 10 and is limited to 20.
+- `provider` defaults to `tejhq`.
+- `exchange` is optional; when supplied it must be `NSE` or `BSE`.
+
+The response contains the number of companies scanned, eligible and skipped, ranked research candidates, latest stored date, indicator values, hypothetical entry/stop/targets, simulated quantity, capital required, estimated price risk, entry conditions, invalidation and exit rules.
+
+This first version is a historical EOD paper-research screen, not a complete exchange-wide live scanner. It only scans companies already recorded in the `companies` table (up to 100), and only where sufficient stored history exists for the selected provider. It does not include brokerage, taxes, slippage, fundamentals, live quotes, intraday candles, broker integration or order execution. Long-term mode is technical-only. The score is a transparent heuristic, not a calibrated probability or prediction.
+
+**Example:**
+
+```bash
+curl -sS -X POST http://127.0.0.1:8080/api/v1/trade-planner/scan \\
+  -H 'Content-Type: application/json' \\
+  -d '{"budget":10000,"style":"swing","risk_percent":1,"max_candidates":10,"provider":"tejhq","exchange":"NSE"}'
+```
+
+> Educational paper-trading research only. Candidate ranks and hypothetical levels are not buy/sell recommendations. No real orders are placed.
