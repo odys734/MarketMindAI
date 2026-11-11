@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"math"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -90,8 +89,9 @@ func (h *TradePlannerHandler) Scan(c *gin.Context) {
 			if scanErr:=priceRows.Scan(&dateText,&bar.Open,&bar.High,&bar.Low,&bar.Close,&bar.Volume); scanErr!=nil {
 				priceRows.Close(); c.JSON(http.StatusInternalServerError,gin.H{"error":"Could not read historical prices"}); return
 			}
-			bar.Date,scanErr=time.Parse("2006-01-02",dateText)
-			if scanErr!=nil { priceRows.Close(); c.JSON(http.StatusInternalServerError,gin.H{"error":"Invalid stored trading date"}); return }
+			parsedDate,dateErr:=time.Parse("2006-01-02",dateText)
+			if dateErr!=nil { priceRows.Close(); c.JSON(http.StatusInternalServerError,gin.H{"error":"Invalid stored trading date"}); return }
+			bar.Date=parsedDate
 			bars=append(bars,bar)
 		}
 		if err:=priceRows.Err(); err!=nil { priceRows.Close(); c.JSON(http.StatusInternalServerError,gin.H{"error":"Historical price iteration failed"}); return }
@@ -112,4 +112,3 @@ func (h *TradePlannerHandler) Scan(c *gin.Context) {
 	})
 }
 
-var _ = strconv.IntSize
