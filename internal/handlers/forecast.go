@@ -76,10 +76,11 @@ func (h *ForecastHandler) Run(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var companyName, symbol, exchange string
+	var currency sql.NullString
 	err = h.DB.QueryRowContext(ctx,
-		"SELECT name, symbol, exchange FROM companies WHERE id = $1",
+		"SELECT name, symbol, exchange, currency FROM companies WHERE id = $1",
 		companyID,
-	).Scan(&companyName, &symbol, &exchange)
+	).Scan(&companyName, &symbol, &exchange, &currency)
 
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Company not found"})
@@ -243,6 +244,7 @@ func (h *ForecastHandler) Run(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"company": gin.H{
 			"id": companyID, "name": companyName, "symbol": symbol, "exchange": exchange,
+			"currency": nullableString(currency),
 		},
 		"data_type": "historical_eod_model_forecast",
 		"forecast": gin.H{
@@ -251,7 +253,7 @@ func (h *ForecastHandler) Run(c *gin.Context) {
 			"horizon_sessions":          request.HorizonSessions,
 			"provider":                  selectedProvider,
 			"last_close":                lastBar.Close,
-			"training_observations":     len(dataset.Rows),
+			"dataset_training_rows":     len(dataset.Rows),
 			"incomplete_target_count":   dataset.IncompleteCount,
 			"ridge_model_metadata":      ridge.Metadata(),
 			"models":                    predictions,
@@ -292,4 +294,11 @@ func forecastPrediction(name string, predictedReturnPct, lastClose float64) Fore
 		prediction.IndicativePrice = &price
 	}
 	return prediction
+}
+
+func nullableString(value sql.NullString) any {
+	if !value.Valid {
+		return nil
+	}
+	return value.String
 }
