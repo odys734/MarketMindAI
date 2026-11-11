@@ -376,6 +376,8 @@ The forecasting package currently provides:
 - Out-of-sample MAE, RMSE, mean error and directional accuracy; optional probability and interval metrics are supported by the evaluation layer.
 - Fold diagnostics including training/test observation counts, purged observations and date boundaries.
 - Ridge model metadata including regularization lambda and feature count.
+- Unified comparison of baseline and feature-based models on identical walk-forward test observations.
+- Comparison validation for duplicate model names, missing models and mismatched evaluation dates or actual returns.
 
 Ridge preprocessing statistics are learned from each fold's training observations only. Predictions are generated separately from each test row's features. Incomplete feature rows are excluded from Ridge training; incomplete prediction features are rejected.
 
