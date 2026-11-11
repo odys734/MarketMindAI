@@ -91,14 +91,25 @@ Use `MarshalForecastExperimentReport` to serialize the report as indented
 JSON. The function returns JSON bytes; persistence to a file or database is
 the responsibility of the caller.
 
+### HTTP evaluation endpoint
+
+The experiment runner is exposed through `POST /api/v1/companies/:id/forecast/evaluate`.
+The handler loads a provider-consistent EOD series from PostgreSQL, calculates
+features and forward-return targets, builds the requested horizon datasets and
+runs the shared model comparison.
+
+The endpoint defaults to horizons 1, 5, 10 and 20; initial training size 80;
+minimum post-purge training size 30; test size and step size 20; and Ridge
+lambda 1.0. Training labels reaching or overlapping the test period are
+purged, and Ridge preprocessing is fitted inside each training fold. The
+response includes aligned out-of-sample observations, fold diagnostics, MAE,
+RMSE, mean error and directional accuracy.
+
 ### Scope and limitations
 
-The experiment runner is currently a package-level API. It is not wired to an
-HTTP endpoint, database dataset loader, scheduled job or command-line export
-workflow.
-
-The runner evaluates supplied datasets; it does not fetch market data, select
-a winning model, deploy forecasts or guarantee reproducibility of market
-results. The generation timestamp will differ between runs. Model comparisons
-remain dependent on dataset quality, date coverage, validation settings and
-market regime.
+The endpoint does not select a winning model, tune hyperparameters, persist
+reports, schedule evaluations or deploy forecasts. Results depend on data
+quality, date coverage, validation settings and market regime. The generation
+timestamp differs between runs. Passing tests does not establish predictive
+skill; review sample size, fold diagnostics and baseline comparisons before
+interpreting metrics.
