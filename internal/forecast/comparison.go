@@ -13,6 +13,7 @@ type ModelComparisonEntry struct {
 	ModelMetadata   map[string]any        `json:"model_metadata,omitempty"`
 	HorizonSessions int                   `json:"horizon_sessions"`
 	FoldCount       int                   `json:"fold_count"`
+	Folds           []FeatureFoldDiagnostic `json:"folds"`
 	Observations    []ForecastObservation `json:"observations"`
 	Metrics         EvaluationMetrics     `json:"metrics"`
 }
@@ -67,6 +68,7 @@ func CompareForecastModels(
 			ModelType:       "baseline",
 			HorizonSessions: evaluation.HorizonSessions,
 			FoldCount:       evaluation.FoldCount,
+			Folds:           evaluation.Folds,
 			Observations:    evaluation.Observations,
 			Metrics:         evaluation.Metrics,
 		})
