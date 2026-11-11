@@ -364,6 +364,23 @@ The application reports stored historical records, not live market quotes. Missi
 
 ---
 
+## Forecasting Research
+
+The forecasting package currently provides:
+
+- Historical feature engineering using returns, moving averages, RSI, MACD and volatility.
+- Forward-return targets for 1, 5, 10 and 20 sessions.
+- Zero-return and historical-mean baseline models.
+- Ridge Regression using eight normalized technical features.
+- Expanding-window walk-forward evaluation with purging of training labels that overlap the test period.
+- Out-of-sample MAE, RMSE, mean error and directional accuracy; optional probability and interval metrics are supported by the evaluation layer.
+- Fold diagnostics including training/test observation counts, purged observations and date boundaries.
+- Ridge model metadata including regularization lambda and feature count.
+
+Ridge preprocessing statistics are learned from each fold's training observations only. Predictions are generated separately from each test row's features. Incomplete feature rows are excluded from Ridge training; incomplete prediction features are rejected.
+
+**Limitations:** These are research models, not validated production forecasts. Passing software tests does not establish predictive skill. Model performance must be assessed on sufficiently large, representative, point-in-time datasets against naive baselines. Results are sensitive to data quality, market regime, feature choices and model configuration. No accuracy or return is guaranteed.
+
 ## 12. Development Status
 
 The backend currently includes:
