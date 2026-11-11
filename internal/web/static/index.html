@@ -7,9 +7,9 @@
   <meta name="description" content="MarketMind AI historical market research dashboard">
   <title>MarketMind AI</title>
   <link rel="manifest" href="/app/manifest.webmanifest">
-  <link rel="stylesheet" href="/app/styles.css">
+  <link rel="stylesheet" href="/app/styles.css">\n  <link rel="stylesheet" href="/app/research-lab.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2316b8a6'/%3E%3Cpath d='M18 70 38 48 53 60 80 28' fill='none' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <script defer src="/app/app.js"></script>
+  <script defer src="/app/app.js"></script>\n  <script defer src="/app/research-lab.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
       <nav class="nav">
         <a class="nav-link active" href="#overview" data-section="overview"><span>◫</span> Overview</a>
         <a class="nav-link" href="#companies" data-section="companies"><span>▤</span> Companies</a>
-        <a class="nav-link" href="#scanner" data-section="scanner"><span>⌁</span> Paper scanner</a>
+        <a class="nav-link" href="#priceLab" data-section="priceLab"><span>⌁</span> Price lab</a>\n        <a class="nav-link" href="#scanner" data-section="scanner"><span>⌁</span> Paper scanner</a>
         <a class="nav-link" href="#quality" data-section="quality"><span>◉</span> Data quality</a>
         <a class="nav-link" href="#tools" data-section="tools"><span>⌘</span> Research tools</a>
       </nav>
@@ -55,6 +55,48 @@
         <div class="section-heading"><div><h2>Company research</h2><p class="muted">Browse instruments registered in your database.</p></div><div class="search-wrap"><input id="companySearch" type="search" placeholder="Search name or symbol" aria-label="Search companies"></div></div>
         <div class="panel table-panel">
           <div class="table-scroll"><table><thead><tr><th>Company</th><th>Symbol</th><th>Exchange</th><th>Latest close</th><th>Daily change</th><th>Data date</th></tr></thead><tbody id="companyRows"><tr><td colspan="6" class="empty">Loading companies…</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="priceLab" class="section">
+        <div class="section-heading"><div><h2>Historical price lab</h2><p class="muted">Explore stored EOD prices, technical indicators and exportable observations.</p></div><span class="subtle-tag">DESCRIPTIVE ANALYSIS</span></div>
+        <div class="research-lab-grid">
+          <div class="panel">
+            <div class="panel-heading"><div><h3>Price explorer</h3><p class="muted">Select a company and historical date range.</p></div></div>
+            <div class="lab-controls">
+              <label>Registered company<select id="labCompanySelect"><option value="">Loading companies…</option></select></label>
+              <label>Company ID<input id="labCompanyId" type="number" min="1" value="1"></label>
+              <label>From date<input id="labFrom" type="date"></label>
+              <label>To date<input id="labTo" type="date"></label>
+            </div>
+            <div class="lab-actions"><button class="primary-button" id="loadPricesBtn" type="button">Load price history</button><button class="secondary-button" id="saveWatchBtn" type="button">☆ Save to watchlist</button><button class="secondary-button" id="exportPricesBtn" type="button">Export CSV</button></div>
+            <div id="labMessage" class="lab-message" role="status">Choose a company and load its stored history.</div>
+            <div id="priceMeta" class="lab-meta"></div>
+            <div id="priceChart" class="lab-chart"><div class="empty">Historical close chart will appear here.</div></div>
+            <div id="priceMetrics" class="lab-metrics"></div>
+            <div class="panel-heading" style="margin-top:16px"><div><h3>Latest sessions</h3><p class="muted">Most recent eight stored observations.</p></div></div>
+            <div class="table-scroll price-table"><table><thead><tr><th>Date</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th></tr></thead><tbody id="priceRows"><tr><td colspan="6" class="empty">No price history loaded.</td></tr></tbody></table></div>
+          </div>
+          <div class="panel">
+            <div class="panel-heading"><div><h3>Local watchlist</h3><p class="muted">Saved only in this browser on this device.</p></div><span class="subtle-tag">PRIVATE DEVICE DATA</span></div>
+            <div id="watchlistItems" class="watchlist-items"><span class="muted small-note">Loading saved instruments…</span></div>
+            <hr class="lab-divider">
+            <div class="panel-heading"><div><h3>Add a company</h3><p class="muted">Register an instrument for historical research.</p></div></div>
+            <form id="createCompanyForm">
+              <div class="create-company-grid">
+                <label>Company name<input name="name" maxlength="255" required placeholder="Company name"></label>
+                <label>Symbol<input name="symbol" maxlength="50" required placeholder="SYMBOL"></label>
+                <label>Exchange<select name="exchange" required><option value="NSE">NSE</option><option value="BSE">BSE</option></select></label>
+                <label>Country<input name="country" value="India" required></label>
+                <label>Sector<input name="sector" placeholder="Optional"></label>
+                <label>Industry<input name="industry" placeholder="Optional"></label>
+                <label>Currency<input name="currency" value="INR"></label>
+                <label>Website<input name="website" type="url" placeholder="https://…"></label>
+              </div>
+              <div class="lab-actions"><button class="primary-button" id="createCompanyBtn" type="submit">Create company</button></div>
+            </form>
+            <div class="notice" style="margin-top:14px"><strong>Research note</strong><span>Indicators are calculated from stored daily closing prices. They describe past observations and do not predict future performance or provide investment advice.</span></div>
+          </div>
         </div>
       </section>
 
