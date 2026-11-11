@@ -1,8 +1,8 @@
 (()=>{"use strict";
 const API="/api/v1", byId=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const fmt=(n,d=2)=>Number.isFinite(Number(n))?Number(n).toLocaleString("en-IN",{maximumFractionDigits:d}):"—";
-const money=n=>Number.isFinite(Number(n))?"₹"+fmt(n):"—";
+const fmt=(n,d=2)=>n===null||n===undefined||n===""||!Number.isFinite(Number(n))?"—":Number(n).toLocaleString("en-IN",{maximumFractionDigits:d});
+const money=n=>n===null||n===undefined||n===""||!Number.isFinite(Number(n))?"—":"₹"+fmt(n);
 const today=new Date().toISOString().slice(0,10);
 const defaultFrom=new Date(Date.now()-300*86400000).toISOString().slice(0,10);
 let bars=[], companyMeta={};
