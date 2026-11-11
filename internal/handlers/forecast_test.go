@@ -57,10 +57,10 @@ func TestForecastSuccessfulPrediction(t *testing.T) {
 	}
 	defer db.Close()
 
-	mock.ExpectQuery("SELECT name, symbol, exchange FROM companies WHERE id = \\$1").
+	mock.ExpectQuery("SELECT name, symbol, exchange, currency FROM companies WHERE id = \\$1").
 		WithArgs(int64(1)).
-		WillReturnRows(sqlmock.NewRows([]string{"name", "symbol", "exchange"}).
-			AddRow("Test Company", "TEST", "NSE"))
+		WillReturnRows(sqlmock.NewRows([]string{"name", "symbol", "exchange", "currency"}).
+			AddRow("Test Company", "TEST", "NSE", "INR"))
 
 	priceRows := sqlmock.NewRows([]string{
 		"trading_date", "open", "high", "low", "close", "volume", "provider",
@@ -103,7 +103,7 @@ func TestForecastSuccessfulPrediction(t *testing.T) {
 		Forecast struct {
 			HorizonSessions      int "json:\"horizon_sessions\""
 			Provider             string "json:\"provider\""
-			TrainingObservations int "json:\"training_observations\""
+			DatasetTrainingRows int "json:\"dataset_training_rows\""
 			Models []struct {
 				ModelName string "json:\"model_name\""
 				PredictedReturnPct float64 "json:\"predicted_return_pct\""
@@ -122,8 +122,8 @@ func TestForecastSuccessfulPrediction(t *testing.T) {
 	if response.Forecast.HorizonSessions != 5 || response.Forecast.Provider != "tejhq" {
 		t.Fatalf("unexpected forecast metadata: %+v", response.Forecast)
 	}
-	if response.Forecast.TrainingObservations < 10 {
-		t.Fatalf("expected at least 10 training observations, got %d", response.Forecast.TrainingObservations)
+	if response.Forecast.DatasetTrainingRows < 10 {
+		t.Fatalf("expected at least 10 training observations, got %d", response.Forecast.DatasetTrainingRows)
 	}
 	if len(response.Forecast.Models) != 3 {
 		t.Fatalf("expected three model predictions, got %d", len(response.Forecast.Models))
@@ -158,10 +158,10 @@ func TestForecastRejectsMixedProviders(t *testing.T) {
 	}
 	defer db.Close()
 
-	mock.ExpectQuery("SELECT name, symbol, exchange FROM companies WHERE id = \\$1").
+	mock.ExpectQuery("SELECT name, symbol, exchange, currency FROM companies WHERE id = \\$1").
 		WithArgs(int64(1)).
-		WillReturnRows(sqlmock.NewRows([]string{"name", "symbol", "exchange"}).
-			AddRow("Test Company", "TEST", "NSE"))
+		WillReturnRows(sqlmock.NewRows([]string{"name", "symbol", "exchange", "currency"}).
+			AddRow("Test Company", "TEST", "NSE", "INR"))
 
 	priceRows := sqlmock.NewRows([]string{
 		"trading_date", "open", "high", "low", "close", "volume", "provider",
