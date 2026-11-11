@@ -134,3 +134,17 @@ func TestBuildWalkForwardFoldsExpandingWindow(t *testing.T) {
 		t.Fatal("expected expanding training window")
 	}
 }
+
+func TestBuildWalkForwardFoldsRejectsOverlappingTestWindows(t *testing.T) {
+	dataset := buildTestDataset(t, 50, 1)
+
+	_, err := BuildWalkForwardFolds(dataset, WalkForwardConfig{
+		InitialTrainSize: 10,
+		MinimumTrainSize: 5,
+		TestSize:         5,
+		StepSize:         3,
+	})
+	if err == nil {
+		t.Fatal("expected overlapping test-window error")
+	}
+}

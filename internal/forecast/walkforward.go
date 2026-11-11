@@ -62,6 +62,9 @@ func BuildWalkForwardFolds(dataset Dataset, config WalkForwardConfig) ([]WalkFor
 	if step == 0 {
 		step = config.TestSize
 	}
+	if step < config.TestSize {
+		return nil, errors.New("step size cannot be smaller than test size; overlapping test windows are not supported")
+	}
 
 	rows := dataset.Rows
 	if len(rows) <= config.InitialTrainSize {
