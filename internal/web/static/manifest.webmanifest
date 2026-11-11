@@ -1,0 +1,11 @@
+{
+  "name": "MarketMind AI Research",
+  "short_name": "MarketMind",
+  "description": "Historical market research and paper simulation dashboard",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "background_color": "#080e19",
+  "theme_color": "#0b1220",
+  "icons": []
+}
