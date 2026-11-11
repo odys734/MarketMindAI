@@ -36,8 +36,8 @@ func (h *TradePlannerHandler) Scan(c *gin.Context) {
 		c.JSON(http.StatusBadRequest,gin.H{"error":"budget must be finite, positive and <= 1e12"}); return
 	}
 	req.Style=strings.ToLower(strings.TrimSpace(req.Style))
-	if req.Style!="swing" && req.Style!="long_term" {
-		c.JSON(http.StatusUnprocessableEntity,gin.H{"error":"intraday is unavailable because the configured provider stores end-of-day data only; choose swing or long_term"}); return
+	if req.Style!="swing" {
+		c.JSON(http.StatusUnprocessableEntity,gin.H{"error":"only swing research is supported in this first release; intraday needs intraday data and long_term needs longer-horizon fundamental research"}); return
 	}
 	if req.RiskPercent==0 { req.RiskPercent=1 }
 	if req.MaxCandidates==0 { req.MaxCandidates=10 }
@@ -47,7 +47,7 @@ func (h *TradePlannerHandler) Scan(c *gin.Context) {
 		c.JSON(http.StatusBadRequest,gin.H{"error":"invalid provider or exchange"}); return
 	}
 	// Validate planner settings before scanning the database.
-	if req.RiskPercent<=0||req.RiskPercent>2||req.MaxCandidates<1||req.MaxCandidates>20 {
+	if math.IsNaN(req.RiskPercent)||math.IsInf(req.RiskPercent,0)||req.RiskPercent<=0||req.RiskPercent>2||req.MaxCandidates<1||req.MaxCandidates>20 {
 		c.JSON(http.StatusBadRequest,gin.H{"error":"risk_percent must be > 0 and <= 2; max_candidates must be 1..20"}); return
 	}
 	rows,err:=h.DB.QueryContext(c.Request.Context(),`
