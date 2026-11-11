@@ -381,6 +381,11 @@ The forecasting package currently provides:
 
 Ridge preprocessing statistics are learned from each fold's training observations only. Predictions are generated separately from each test row's features. Incomplete feature rows are excluded from Ridge training; incomplete prediction features are rejected.
 
+- Multi-horizon experiment runner for supported 1, 5, 10 and 20-session datasets.
+- Fresh model instances per horizon, shared walk-forward configuration and canonical horizon ordering.
+- Experiment reports with schema version, UTC generation time, dataset date boundaries, row counts and model comparisons.
+- Indented JSON serialization through `MarshalForecastExperimentReport`.
+
 **Limitations:** These are research models, not validated production forecasts. Passing software tests does not establish predictive skill. Model performance must be assessed on sufficiently large, representative, point-in-time datasets against naive baselines. Results are sensitive to data quality, market regime, feature choices and model configuration. No accuracy or return is guaranteed.
 
 ## 12. Development Status

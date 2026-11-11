@@ -47,3 +47,58 @@ A lower error metric in one historical sample does not prove that a model will p
 The current comparison engine does not automatically select or deploy a winning model. It does not establish calibrated probabilities or reliable prediction intervals unless a model explicitly supplies and validates them.
 
 These models are experimental research tools, not personalized investment recommendations or guarantees of future performance.
+
+## Multi-horizon forecast experiments
+
+`RunForecastExperiment` runs a unified model comparison across one or more
+supported forecast horizons: 1, 5, 10 and 20 sessions.
+
+The caller supplies:
+
+- A `map[int]Dataset`, keyed by forecast horizon.
+- One shared `WalkForwardConfig`.
+- A list of `ForecastModelFactory` values.
+
+Each factory must define exactly one constructor:
+
+- `NewBaseline` for a `BaselineModel`.
+- `NewFeature` for a `FeatureForecastModel`.
+
+Factories create fresh model instances independently for each horizon. This
+prevents fitted model state from leaking between horizon evaluations.
+
+The runner:
+
+1. Validates supported horizons and dataset metadata.
+2. Rejects empty datasets, negative incomplete counts and invalid factories.
+3. Evaluates supplied horizons in canonical order.
+4. Calls `CompareForecastModels` separately for each horizon.
+5. Records dataset diagnostics and comparison results in one report.
+
+### Experiment report
+
+`ForecastExperimentReport` contains:
+
+- `schema_version`: report schema version (`1.0`).
+- `generated_at`: UTC report generation timestamp.
+- `configuration`: the walk-forward configuration used.
+- `horizons`: one result per supplied horizon.
+
+Each horizon result records its session horizon, first and last dataset dates,
+row count, incomplete count and model comparison results.
+
+Use `MarshalForecastExperimentReport` to serialize the report as indented
+JSON. The function returns JSON bytes; persistence to a file or database is
+the responsibility of the caller.
+
+### Scope and limitations
+
+The experiment runner is currently a package-level API. It is not wired to an
+HTTP endpoint, database dataset loader, scheduled job or command-line export
+workflow.
+
+The runner evaluates supplied datasets; it does not fetch market data, select
+a winning model, deploy forecasts or guarantee reproducibility of market
+results. The generation timestamp will differ between runs. Model comparisons
+remain dependent on dataset quality, date coverage, validation settings and
+market regime.
