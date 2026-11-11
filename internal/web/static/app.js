@@ -24,3 +24,67 @@ $("qualityBtn").addEventListener("click",()=>loadQuality().then(()=>toast("Data 
 document.querySelectorAll(".nav-link").forEach(link=>link.addEventListener("click",()=>{document.querySelectorAll(".nav-link").forEach(x=>x.classList.remove("active"));link.classList.add("active");}));
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("/app/sw.js").catch(()=>{}));}
 refreshAll();
+
+
+const toolDefinitions=[
+ {id:"overview",label:"Market overview",method:"GET",path:()=>"/market/overview"},
+ {id:"quality",label:"Data quality report",method:"GET",path:()=>"/market/data-quality"},
+ {id:"company-list",label:"List companies",method:"GET",path:()=>"/companies"},
+ {id:"company-create",label:"Create company",method:"POST",path:()=>"/companies",body:{name:"Example Company",symbol:"EXAMPLE",exchange:"NSE",country:"India",sector:"",industry:"",currency:"INR",website:""}},
+ {id:"company-get",label:"Get company",method:"GET",path:v=>"/companies/"+v.company},
+ {id:"company-update",label:"Update company",method:"PUT",path:v=>"/companies/"+v.company,body:{name:"Example Company",symbol:"EXAMPLE",exchange:"NSE",country:"India",sector:"",industry:"",currency:"INR",website:""}},
+ {id:"company-delete",label:"Delete company",method:"DELETE",path:v=>"/companies/"+v.company,confirm:"Delete this company and its linked records? This cannot be undone."},
+ {id:"news-collect",label:"Collect recent news",method:"POST",path:v=>"/news/collect?company_id="+v.company+"&query="+encodeURIComponent(v.query||"")},
+ {id:"news-list",label:"List company news",method:"GET",path:v=>"/companies/"+v.company+"/news"},
+ {id:"news-relevance",label:"Analyze news relevance",method:"POST",path:v=>"/companies/"+v.company+"/news/analyze"},
+ {id:"news-ai",label:"AI analyze one news item",method:"POST",path:v=>"/companies/"+v.company+"/news/"+v.news+"/analyze-ai"},
+ {id:"news-ai-batch",label:"AI analyze news batch",method:"POST",path:v=>"/companies/"+v.company+"/analyze-ai-batch"},
+ {id:"news-analysis",label:"Get one AI news analysis",method:"GET",path:v=>"/companies/"+v.company+"/news/"+v.news+"/analysis-ai"},
+ {id:"news-analyses",label:"List AI news analyses",method:"GET",path:v=>"/companies/"+v.company+"/news/analyses-ai"},
+ {id:"intelligence",label:"Company intelligence summary",method:"GET",path:v=>"/companies/"+v.company+"/intelligence"},
+ {id:"sentiment",label:"Sentiment history",method:"GET",path:v=>"/companies/"+v.company+"/sentiment-history?days="+v.days},
+ {id:"prices-sync",label:"Sync company historical prices",method:"POST",path:v=>"/companies/"+v.company+"/prices/sync?from="+v.from+"&to="+v.to,confirm:"Fetch and store historical end-of-day prices for this company?"},
+ {id:"prices-list",label:"Get company price history",method:"GET",path:v=>"/companies/"+v.company+"/prices?from="+v.from+"&to="+v.to+"&limit=500"},
+ {id:"company-analytics",label:"Company market analytics",method:"GET",path:v=>"/companies/"+v.company+"/market-analytics?days="+v.days},
+ {id:"news-correlation",label:"News and price correlation",method:"GET",path:v=>"/companies/"+v.company+"/news-price-correlation?limit="+v.days},
+ {id:"backtest",label:"Historical moving-average backtest",method:"POST",path:v=>"/companies/"+v.company+"/backtest",body:{from:"2025-01-01",to:"2026-11-11",fast_period:5,slow_period:20,initial_capital:100000,commission_bps:10,slippage_bps:5,annual_risk_free_rate:0,provider:"tejhq"}},
+ {id:"forecast",label:"Experimental model forecast",method:"POST",path:v=>"/companies/"+v.company+"/forecast",body:{horizon_sessions:5,provider:"tejhq",ridge_lambda:1}},
+ {id:"forecast-eval",label:"Walk-forward forecast evaluation",method:"POST",path:v=>"/companies/"+v.company+"/forecast/evaluate",body:{provider:"tejhq",horizons:[1,5,10,20],initial_train_size:120,minimum_train_size:60,test_size:20,step_size:20,ridge_lambda:1}},
+ {id:"paper-scan",label:"Budget-based paper research scan",method:"POST",path:()=>"/trade-planner/scan",body:{budget:10000,style:"swing",risk_percent:1,max_candidates:10,provider:"tejhq",exchange:"NSE"}},
+ {id:"event-study",label:"Historical news event study",method:"GET",path:v=>"/companies/"+v.company+"/event-study?index_id="+v.index+"&from="+v.from+"&to="+v.to+"&pre=5&post=5&provider="+encodeURIComponent(v.provider)+"&index_provider=yahoo"},
+ {id:"index-sync",label:"Sync index historical prices",method:"POST",path:v=>"/indices/"+v.index+"/prices/sync?from="+v.from+"&to="+v.to,confirm:"Fetch and store historical index data?"},
+ {id:"index-prices",label:"Get index price history",method:"GET",path:v=>"/indices/"+v.index+"/prices?from="+v.from+"&to="+v.to+"&limit=500"},
+ {id:"index-analytics",label:"Index analytics",method:"GET",path:v=>"/indices/"+v.index+"/analytics?days="+Math.max(2,v.days)},
+ {id:"indices-compare",label:"Compare two market indices",method:"GET",path:v=>"/indices/compare?left_id="+v.index+"&right_id="+(v.index+1)+"&days="+Math.max(2,v.days)},
+ {id:"company-index",label:"Compare company with index",method:"GET",path:v=>"/companies/"+v.company+"/compare/indices/"+v.index+"?days="+Math.max(2,v.days)}
+];
+function selectedTool(){return toolDefinitions.find(x=>x.id===$("toolOperation").value)||toolDefinitions[0];}
+function toolValues(){return {company:Math.max(1,Number($("toolCompanyId").value)||1),index:Math.max(1,Number($("toolIndexId").value)||1),news:Math.max(1,Number($("toolNewsId").value)||1),from:$("toolFrom").value,to:$("toolTo").value,days:Math.max(1,Number($("toolDays").value)||30),provider:$("toolProvider").value.trim()||"tejhq",query:""};}
+function setToolBody(){const item=selectedTool();$("toolBody").value=item.body?JSON.stringify(item.body,null,2):"{}";$("toolBody").disabled=!item.body&&item.method!=="POST"&&item.method!=="PUT";}
+function setupWorkbench(){
+ const select=$("toolOperation");if(!select)return;
+ select.innerHTML=toolDefinitions.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label)+' · '+x.method+'</option>').join("");
+ select.addEventListener("change",setToolBody);setToolBody();
+ $("resetToolButton").addEventListener("click",()=>{setToolBody();$("toolResult").textContent="Parameters reset.";});
+ $("runToolButton").addEventListener("click",runSelectedTool);
+}
+async function runSelectedTool(){
+ const item=selectedTool(), values=toolValues(), button=$("runToolButton"), result=$("toolResult"), status=$("toolStatus");
+ if(!values.from||!values.to){if(["prices-sync","prices-list","index-sync","index-prices","event-study"].includes(item.id)){toast("Select both date values first.");return;}}
+ if(item.confirm&&!window.confirm(item.confirm))return;
+ let body;
+ if(item.body||["company-create","company-update","backtest","forecast","forecast-eval","paper-scan"].includes(item.id)){
+  try{body=JSON.parse($("toolBody").value||"{}");}catch(e){toast("Request body JSON is invalid.");return;}
+ }
+ let path=item.path(values);
+ if(item.id==="company-list"){const q=prompt("Optional company name or symbol search:","");if(q)path+="?search="+encodeURIComponent(q);}
+ if(item.id==="news-collect"){const q=prompt("News search query (blank uses company name):","");if(q)path=path.replace(/query=$/,"query="+encodeURIComponent(q));}
+ button.disabled=true;button.textContent="Running…";status.textContent=item.method+" "+path;result.textContent="Request in progress…";
+ try{
+  const data=await api(path,{method:item.method,...(body!==undefined?{body:JSON.stringify(body)}:{})});
+  result.textContent=JSON.stringify(data,null,2);status.textContent="Success · "+item.method;toast("Operation completed");
+  if(["overview","quality","company-create","company-update","company-delete","prices-sync","index-sync","news-collect"].includes(item.id))refreshAll().catch(()=>{});
+ }catch(err){result.textContent=JSON.stringify({error:err.message},null,2);status.textContent="Request failed";toast(err.message);}
+ finally{button.disabled=false;button.innerHTML='Run selected operation <span>→</span>';}
+}
+setupWorkbench();
