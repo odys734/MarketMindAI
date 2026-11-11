@@ -22,43 +22,7 @@ Example:
 
 ```bash
 curl http://127.0.0.1:8080/api/v1/health
-Great! Ab stock aur index dono ke sync responses bhi confirm ho gaye hain. API documentation ke liye required details available hain.
-
-Ek important distinction: Stock historical prices TejHQ se aate hain, jabki index historical prices Yahoo Finance chart endpoint se. Dono historical EOD data hain—live market feed nahi.
-
-### Step 1 — `docs/API.md` create karo
-
-Termux mein ye poora command run karo:
-
-````bash
-cd ~/MarketMindAI
-
-cat > docs/API.md <<'EOF'
-# MarketMind AI — API Reference
-
-**Base URL:** `http://127.0.0.1:8080/api/v1`
-
-All endpoints use JSON unless otherwise stated.
-
-## General conventions
-
-- Company and index IDs must be positive integers.
-- Dates use `YYYY-MM-DD`.
-- Historical price endpoints return stored records, not live quotes.
-- Unless specified otherwise, errors return JSON containing an `error` field.
-- The API currently has no authentication middleware. Do not expose it publicly without adding authentication and access controls.
-
-## Health
-
-### GET /health
-
-Checks API and database health.
-
-Example:
-
-```bash
-curl http://127.0.0.1:8080/api/v1/health
-````
+```
 
 ### Companies
 
@@ -510,3 +474,98 @@ curl -X POST \
 | 500 | Database or stored-data error |
 
 > Historical backtests are hypothetical. Results depend on data quality, strategy assumptions, transaction costs and sample period. They do not predict future performance or constitute personalized investment advice.
+
+
+## Historical Model Forecast
+
+### POST /companies/:id/forecast
+
+Generates an experimental multi-session forecast from the company's stored historical EOD prices.
+
+**Request body:**
+
+```json
+{
+  "horizon_sessions": 5,
+  "provider": "tejhq",
+  "ridge_lambda": 1.0
+}
+```
+
+- horizon_sessions is required and must be 1, 5, 10 or 20 trading sessions.
+- provider is optional. If omitted, the stored history must resolve to one provider; mixed-provider history returns 409. Specify a provider to select one consistent series.
+- ridge_lambda is optional and defaults to 1.0; accepted values are finite, positive and no greater than 1,000,000.
+- The endpoint uses at most 5,000 historical sessions.
+
+The response includes the latest stored session date and close, provider, dataset row count, Ridge model metadata and three model outputs: Ridge Regression, Zero Return and Historical Mean. Each output includes a predicted simple return and, when mathematically valid, an indicative price calculated from the latest stored close.
+
+**Responses:**
+
+| Status | Meaning |
+|---|---|
+| 200 | Forecast generated |
+| 400 | Invalid company ID, JSON or forecast configuration |
+| 404 | Company not found |
+| 409 | Duplicate dates or mixed providers |
+| 422 | Insufficient history, invalid stored data or unavailable model features |
+| 500 | Database or stored-data error |
+
+The endpoint fits Ridge Regression using historical rows whose forward-return labels are available by the latest stored session, then predicts from technical features at that latest session. It does not return calibrated probabilities, confidence intervals or walk-forward accuracy metrics. The baseline models are comparisons, not evidence that any model has predictive skill.
+
+> Forecast outputs are experimental historical-data model estimates, not guaranteed prices, trading signals or personalized investment advice.
+
+
+## Walk-forward Forecast Evaluation
+
+### POST /companies/:id/forecast/evaluate
+
+Runs a chronological, expanding-window out-of-sample comparison for Ridge Regression, Zero Return and Historical Mean using stored historical EOD prices. Unlike the single forecast endpoint, this endpoint evaluates predictions against subsequently observed forward returns.
+
+**Request body:**
+
+```json
+{
+  "provider": "tejhq",
+  "horizons": [1, 5, 10, 20],
+  "initial_train_size": 80,
+  "minimum_train_size": 30,
+  "test_size": 20,
+  "step_size": 20,
+  "ridge_lambda": 1.0
+}
+```
+
+All fields are optional:
+- `provider`: selects one consistent stored data provider. If omitted, mixed-provider or duplicate-date data returns 409.
+- `horizons`: one or more unique values from 1, 5, 10 and 20. Defaults to all four.
+- `initial_train_size`: initial number of dataset rows before the first test fold; defaults to 80.
+- `minimum_train_size`: minimum rows remaining after purging overlapping target labels; defaults to 30.
+- `test_size`: observations per test fold; defaults to 20.
+- `step_size`: distance between test fold starts; defaults to `test_size`. Overlapping test windows are rejected.
+- `ridge_lambda`: positive finite Ridge regularization; defaults to 1.0.
+
+The endpoint processes at most 5,000 historical sessions and requires at least 100 sessions. Each fold trains only on earlier observations; training labels whose target dates reach or overlap the test period are purged. Ridge preprocessing is fitted inside each training fold. Model metrics are calculated from aligned out-of-sample observations only.
+
+The experiment report includes each horizon's dataset date range, complete/incomplete row counts, model comparisons, fold counts, MAE, RMSE, mean error, directional accuracy and fold diagnostics. It does not automatically select a winning model.
+
+**Example:**
+
+```bash
+curl -X POST \
+  "http://127.0.0.1:8080/api/v1/companies/1/forecast/evaluate" \
+  -H "Content-Type: application/json" \
+  -d '{"provider":"tejhq","horizons":[5,20],"initial_train_size":80,"minimum_train_size":30,"test_size":20,"step_size":20,"ridge_lambda":1.0}'
+```
+
+**Responses:**
+
+| Status | Meaning |
+|---|---|
+| 200 | Walk-forward evaluation completed |
+| 400 | Invalid ID, JSON, horizons or validation configuration |
+| 404 | Company not found |
+| 409 | Duplicate dates or mixed providers |
+| 422 | Insufficient history or a fold/model could not be evaluated |
+| 500 | Database or stored-data error |
+
+> Historical out-of-sample performance is descriptive, not a guarantee of future accuracy. A lower error in one sample does not establish predictive skill or provide an investment recommendation.

@@ -270,6 +270,7 @@ API prefix:
 | Method | Endpoint | Purpose |
 |---|---|---|
 | POST | `/api/v1/companies/:id/backtest` | Run a hypothetical historical SMA crossover simulation |
+| POST | `/api/v1/companies/:id/forecast` | Generate experimental 1, 5, 10 or 20-session model forecasts |\n| POST | `/api/v1/companies/:id/forecast/evaluate` | Compare forecast models using purged walk-forward validation |
 
 The backtesting engine includes next-session execution, simulated commission and slippage, portfolio equity tracking, and historical performance metrics. It does not place real orders or provide investment recommendations.
 
@@ -385,6 +386,7 @@ Ridge preprocessing statistics are learned from each fold's training observation
 - Fresh model instances per horizon, shared walk-forward configuration and canonical horizon ordering.
 - Experiment reports with schema version, UTC generation time, dataset date boundaries, row counts and model comparisons.
 - Indented JSON serialization through `MarshalForecastExperimentReport`.
+- Company-level historical EOD forecast endpoint using Ridge Regression, Zero Return and Historical Mean models.\n- HTTP walk-forward evaluation endpoint comparing those models on aligned out-of-sample observations across selected horizons.
 
 **Limitations:** These are research models, not validated production forecasts. Passing software tests does not establish predictive skill. Model performance must be assessed on sufficiently large, representative, point-in-time datasets against naive baselines. Results are sensitive to data quality, market regime, feature choices and model configuration. No accuracy or return is guaranteed.
 

@@ -19,15 +19,20 @@ type ForecastObservation struct {
 }
 
 // EvaluationMetrics summarizes out-of-sample forecast performance.
+// Directional accuracy excludes observations where either the forecast or
+// realized return is exactly zero because those observations have no direction.
 type EvaluationMetrics struct {
-	ObservationCount     int      `json:"observation_count"`
-	MAE                  float64  `json:"mae"`
-	RMSE                 float64  `json:"rmse"`
-	MeanError            float64  `json:"mean_error"`
-	DirectionalAccuracy  float64  `json:"directional_accuracy_pct"`
-	BrierScore           *float64 `json:"brier_score,omitempty"`
-	IntervalCoverage     *float64 `json:"interval_coverage_pct,omitempty"`
-	AverageIntervalWidth *float64 `json:"average_interval_width_pct,omitempty"`
+	ObservationCount             int      `json:"observation_count"`
+	MAE                          float64  `json:"mae"`
+	RMSE                         float64  `json:"rmse"`
+	MeanError                    float64  `json:"mean_error"`
+	DirectionalAccuracy          float64  `json:"directional_accuracy_pct"`
+	DirectionalObservationCount  int      `json:"directional_observation_count"`
+	DirectionalTieCount          int      `json:"directional_tie_count"`
+	DirectionalAccuracyDefined   bool     `json:"directional_accuracy_defined"`
+	BrierScore                   *float64 `json:"brier_score,omitempty"`
+	IntervalCoverage             *float64 `json:"interval_coverage_pct,omitempty"`
+	AverageIntervalWidth         *float64 `json:"average_interval_width_pct,omitempty"`
 }
 
 // EvaluateForecasts calculates metrics from completed out-of-sample
@@ -38,7 +43,7 @@ func EvaluateForecasts(observations []ForecastObservation) (EvaluationMetrics, e
 	}
 
 	var absoluteErrorSum, squaredErrorSum, errorSum float64
-	var directionCorrect int
+	var directionCorrect, directionalCount, directionalTieCount int
 
 	var brierSum float64
 	brierCount := 0
@@ -67,10 +72,17 @@ func EvaluateForecasts(observations []ForecastObservation) (EvaluationMetrics, e
 			return EvaluationMetrics{}, errors.New("forecast error accumulation overflowed")
 		}
 
-		if (observation.PredictedReturn > 0 && observation.ActualReturn > 0) ||
-			(observation.PredictedReturn < 0 && observation.ActualReturn < 0) ||
-			(observation.PredictedReturn == 0 && observation.ActualReturn == 0) {
-			directionCorrect++
+		// A zero forecast has no directional call. A zero realized return
+		// also has no up/down direction. Exclude either case from the
+		// directional-accuracy denominator and report the tie count.
+		if observation.PredictedReturn == 0 || observation.ActualReturn == 0 {
+			directionalTieCount++
+		} else {
+			directionalCount++
+			if (observation.PredictedReturn > 0 && observation.ActualReturn > 0) ||
+				(observation.PredictedReturn < 0 && observation.ActualReturn < 0) {
+				directionCorrect++
+			}
 		}
 
 		if observation.UpProbability != nil {
@@ -117,11 +129,16 @@ func EvaluateForecasts(observations []ForecastObservation) (EvaluationMetrics, e
 
 	count := float64(len(observations))
 	metrics := EvaluationMetrics{
-		ObservationCount:    len(observations),
-		MAE:                 absoluteErrorSum / count,
-		RMSE:                math.Sqrt(squaredErrorSum / count),
-		MeanError:           errorSum / count,
-		DirectionalAccuracy: float64(directionCorrect) / count * 100,
+		ObservationCount:            len(observations),
+		MAE:                         absoluteErrorSum / count,
+		RMSE:                        math.Sqrt(squaredErrorSum / count),
+		MeanError:                   errorSum / count,
+		DirectionalObservationCount: directionalCount,
+		DirectionalTieCount:         directionalTieCount,
+		DirectionalAccuracyDefined:  directionalCount > 0,
+	}
+	if directionalCount > 0 {
+		metrics.DirectionalAccuracy = float64(directionCorrect) / float64(directionalCount) * 100
 	}
 
 	if brierCount > 0 {

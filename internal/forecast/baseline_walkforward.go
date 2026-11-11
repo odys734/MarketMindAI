@@ -8,11 +8,12 @@ import (
 
 // BaselineWalkForwardResult contains aggregated out-of-sample results.
 type BaselineWalkForwardResult struct {
-	ModelName       string                `json:"model_name"`
-	HorizonSessions int                   `json:"horizon_sessions"`
-	FoldCount       int                   `json:"fold_count"`
-	Observations    []ForecastObservation `json:"observations"`
-	Metrics         EvaluationMetrics     `json:"metrics"`
+	ModelName       string                  `json:"model_name"`
+	HorizonSessions int                     `json:"horizon_sessions"`
+	FoldCount       int                     `json:"fold_count"`
+	Folds           []FeatureFoldDiagnostic `json:"folds"`
+	Observations    []ForecastObservation   `json:"observations"`
+	Metrics         EvaluationMetrics       `json:"metrics"`
 }
 
 // EvaluateBaselineWalkForward fits the model independently on each
@@ -35,6 +36,7 @@ func EvaluateBaselineWalkForward(
 		ModelName:       model.Name(),
 		HorizonSessions: dataset.HorizonSessions,
 		FoldCount:       len(folds),
+		Folds:           make([]FeatureFoldDiagnostic, 0, len(folds)),
 		Observations:    make([]ForecastObservation, 0),
 	}
 
@@ -43,6 +45,15 @@ func EvaluateBaselineWalkForward(
 	}
 
 	for _, fold := range folds {
+		diagnostic := FeatureFoldDiagnostic{
+			FoldNumber:           fold.Number,
+			TrainingObservations: len(fold.Train),
+			TestObservations:     len(fold.Test),
+			PurgedObservations:   fold.PurgedCount,
+			TrainEndDate:         fold.TrainEndDate,
+			TestStartDate:        fold.TestStartDate,
+			TestEndDate:          fold.TestEndDate,
+		}
 		if err := model.Fit(fold.Train, dataset.HorizonSessions); err != nil {
 			return BaselineWalkForwardResult{}, fmt.Errorf(
 				"fit %s on fold %d: %w",
@@ -52,6 +63,7 @@ func EvaluateBaselineWalkForward(
 			)
 		}
 
+		foldObservations := make([]ForecastObservation, 0, len(fold.Test))
 		for i, row := range fold.Test {
 			prediction, err := model.Predict()
 			if err != nil {
@@ -72,13 +84,23 @@ func EvaluateBaselineWalkForward(
 				)
 			}
 
-			result.Observations = append(result.Observations, ForecastObservation{
+			observation := ForecastObservation{
 				Date:            row.Date.Format(time.RFC3339),
 				HorizonSessions: dataset.HorizonSessions,
 				PredictedReturn: prediction,
 				ActualReturn:    row.Target.ForwardReturnPct,
-			})
+			}
+			result.Observations = append(result.Observations, observation)
+			foldObservations = append(foldObservations, observation)
 		}
+
+		diagnostic.Metrics, err = EvaluateForecasts(foldObservations)
+		if err != nil {
+			return BaselineWalkForwardResult{}, fmt.Errorf(
+				"evaluate %s fold %d: %w", result.ModelName, fold.Number, err,
+			)
+		}
+		result.Folds = append(result.Folds, diagnostic)
 	}
 
 	if len(result.Observations) == 0 {

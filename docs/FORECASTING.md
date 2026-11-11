@@ -11,6 +11,7 @@ The `internal/forecast` package provides:
 - Purging of training labels that overlap or reach the test period.
 - Feature-based and baseline evaluation paths.
 - Unified model comparison using identical dataset and walk-forward settings.
+- Per-fold out-of-sample error and directional diagnostics.
 
 ## Model comparison
 
@@ -34,11 +35,14 @@ The evaluation layer reports:
 - Mean absolute error (MAE).
 - Root mean squared error (RMSE).
 - Mean forecast error.
-- Directional accuracy.
+- Directional accuracy, plus the number of observations used to calculate it.
+- Directional tie count and a flag indicating whether directional accuracy is defined.
 - Brier score when probability forecasts are supplied.
 - Prediction interval coverage and average width when intervals are supplied.
 
-Metrics are calculated from out-of-sample observations only.
+MAE, RMSE and mean error use every valid out-of-sample observation. Directional accuracy excludes an observation when either the predicted return or actual return is exactly zero, because a zero return has no up/down direction. `directional_observation_count` is the denominator used for directional accuracy; `directional_tie_count` records excluded ties. If there are no directional observations (as with a pure zero-return forecast), `directional_accuracy_defined` is false and the percentage is reported as zero only as a numeric placeholder; it must not be interpreted as 0% accuracy.
+
+Metrics are calculated from out-of-sample observations only. Each fold now includes its own metrics as well as its date and sample-size diagnostics, making changes in performance across time visible instead of hiding them in one pooled score.
 
 ## Important limitations
 
@@ -91,14 +95,25 @@ Use `MarshalForecastExperimentReport` to serialize the report as indented
 JSON. The function returns JSON bytes; persistence to a file or database is
 the responsibility of the caller.
 
+### HTTP evaluation endpoint
+
+The experiment runner is exposed through `POST /api/v1/companies/:id/forecast/evaluate`.
+The handler loads a provider-consistent EOD series from PostgreSQL, calculates
+features and forward-return targets, builds the requested horizon datasets and
+runs the shared model comparison.
+
+The endpoint defaults to horizons 1, 5, 10 and 20; initial training size 80;
+minimum post-purge training size 30; test size and step size 20; and Ridge
+lambda 1.0. Training labels reaching or overlapping the test period are
+purged, and Ridge preprocessing is fitted inside each training fold. The
+response includes aligned out-of-sample observations, pooled metrics, per-fold
+metrics and fold diagnostics.
+
 ### Scope and limitations
 
-The experiment runner is currently a package-level API. It is not wired to an
-HTTP endpoint, database dataset loader, scheduled job or command-line export
-workflow.
-
-The runner evaluates supplied datasets; it does not fetch market data, select
-a winning model, deploy forecasts or guarantee reproducibility of market
-results. The generation timestamp will differ between runs. Model comparisons
-remain dependent on dataset quality, date coverage, validation settings and
-market regime.
+The endpoint does not select a winning model, tune hyperparameters, persist
+reports, schedule evaluations or deploy forecasts. Results depend on data
+quality, date coverage, validation settings and market regime. The generation
+timestamp differs between runs. Passing tests does not establish predictive
+skill; review sample size, fold diagnostics and baseline comparisons before
+interpreting metrics.

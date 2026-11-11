@@ -15,13 +15,14 @@ type FeatureForecastModel interface {
 
 // FeatureFoldDiagnostic describes the training and test data used by one fold.
 type FeatureFoldDiagnostic struct {
-	FoldNumber           int       `json:"fold_number"`
-	TrainingObservations int       `json:"training_observations"`
-	TestObservations     int       `json:"test_observations"`
-	PurgedObservations   int       `json:"purged_observations"`
-	TrainEndDate         time.Time `json:"train_end_date"`
-	TestStartDate        time.Time `json:"test_start_date"`
-	TestEndDate          time.Time `json:"test_end_date"`
+	FoldNumber           int             `json:"fold_number"`
+	TrainingObservations int             `json:"training_observations"`
+	TestObservations     int             `json:"test_observations"`
+	PurgedObservations   int             `json:"purged_observations"`
+	TrainEndDate         time.Time       `json:"train_end_date"`
+	TestStartDate        time.Time       `json:"test_start_date"`
+	TestEndDate          time.Time       `json:"test_end_date"`
+	Metrics              EvaluationMetrics `json:"metrics"`
 }
 
 // FeatureModelMetadataProvider optionally exposes reproducibility metadata.
@@ -75,7 +76,7 @@ func EvaluateFeatureWalkForward(
 	}
 
 	for _, fold := range folds {
-		result.Folds = append(result.Folds, FeatureFoldDiagnostic{
+		diagnostic := FeatureFoldDiagnostic{
 			FoldNumber:           fold.Number,
 			TrainingObservations: len(fold.Train),
 			TestObservations:     len(fold.Test),
@@ -83,7 +84,7 @@ func EvaluateFeatureWalkForward(
 			TrainEndDate:         fold.TrainEndDate,
 			TestStartDate:        fold.TestStartDate,
 			TestEndDate:          fold.TestEndDate,
-		})
+		}
 
 		if err := model.Fit(fold.Train, dataset.HorizonSessions); err != nil {
 			return FeatureWalkForwardResult{}, fmt.Errorf(
@@ -91,6 +92,7 @@ func EvaluateFeatureWalkForward(
 			)
 		}
 
+		foldObservations := make([]ForecastObservation, 0, len(fold.Test))
 		for i, row := range fold.Test {
 			if !row.Features.Date.Equal(row.Date) {
 				return FeatureWalkForwardResult{}, fmt.Errorf(
@@ -113,13 +115,23 @@ func EvaluateFeatureWalkForward(
 				)
 			}
 
-			result.Observations = append(result.Observations, ForecastObservation{
+			observation := ForecastObservation{
 				Date:            row.Date.Format(time.RFC3339),
 				HorizonSessions: dataset.HorizonSessions,
 				PredictedReturn: prediction,
 				ActualReturn:    row.Target.ForwardReturnPct,
-			})
+			}
+			result.Observations = append(result.Observations, observation)
+			foldObservations = append(foldObservations, observation)
 		}
+
+		diagnostic.Metrics, err = EvaluateForecasts(foldObservations)
+		if err != nil {
+			return FeatureWalkForwardResult{}, fmt.Errorf(
+				"evaluate %s fold %d: %w", modelName, fold.Number, err,
+			)
+		}
+		result.Folds = append(result.Folds, diagnostic)
 	}
 
 	if len(result.Observations) == 0 {

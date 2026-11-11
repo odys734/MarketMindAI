@@ -9,6 +9,16 @@ import (
 	"time"
 )
 
+func TestNewClientConfiguresTejHQBaseURL(t *testing.T) {
+	client := NewClient()
+	if client.baseURL != baseURL {
+		t.Fatalf("NewClient baseURL = %q, want %q", client.baseURL, baseURL)
+	}
+	if client.httpClient == nil {
+		t.Fatal("NewClient must configure an HTTP client")
+	}
+}
+
 func TestYahooFetchIndexPrices(t *testing.T) {
 	timestamp := time.Date(2026, 11, 9, 6, 0, 0, 0, time.UTC).Unix()
 
