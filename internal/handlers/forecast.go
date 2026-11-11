@@ -25,7 +25,7 @@ type ForecastHandler struct {
 type ForecastRequest struct {
 	HorizonSessions int     "json:\"horizon_sessions\""
 	Provider         string  "json:\"provider\""
-	RidgeLambda      float64 "json:\"ridge_lambda,omitempty\""
+	RidgeLambda      *float64 "json:\"ridge_lambda,omitempty\""
 }
 
 type ForecastModelPrediction struct {
@@ -60,13 +60,14 @@ func (h *ForecastHandler) Run(c *gin.Context) {
 		return
 	}
 
-	if request.RidgeLambda == 0 {
-		request.RidgeLambda = defaultForecastRidgeLambda
+	ridgeLambda := defaultForecastRidgeLambda
+	if request.RidgeLambda != nil {
+		ridgeLambda = *request.RidgeLambda
 	}
-	if math.IsNaN(request.RidgeLambda) ||
-		math.IsInf(request.RidgeLambda, 0) ||
-		request.RidgeLambda <= 0 ||
-		request.RidgeLambda > 1e6 {
+	if math.IsNaN(ridgeLambda) ||
+		math.IsInf(ridgeLambda, 0) ||
+		ridgeLambda <= 0 ||
+		ridgeLambda > 1e6 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "ridge_lambda must be finite, greater than zero and no greater than 1000000",
 		})
@@ -190,7 +191,7 @@ func (h *ForecastHandler) Run(c *gin.Context) {
 
 	latestFeatures := features[len(features)-1]
 
-	ridge, err := forecast.NewRidgeRegression(request.RidgeLambda)
+	ridge, err := forecast.NewRidgeRegression(ridgeLambda)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Ridge Regression configuration"})
 		return
