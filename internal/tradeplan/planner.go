@@ -51,7 +51,7 @@ func BuildPlan(bars []Bar, req Request) (Plan, error) {
 	var out Plan
 	if !finitePositive(req.Budget) || req.Budget > 1e12 { return out, errors.New("budget must be finite, positive and <= 1e12") }
 	style := strings.ToLower(strings.TrimSpace(req.Style))
-	if style != "swing" && style != "long_term" { return out, errors.New("style must be swing or long_term; intraday requires intraday data") }
+	if style != "swing" { return out, errors.New("style must be swing; intraday requires intraday data and long_term requires longer-horizon fundamental research") }
 	if !finitePositive(req.RiskPercent) || req.RiskPercent > 2 { return out, errors.New("risk_percent must be > 0 and <= 2") }
 	if req.MaxCandidates < 1 || req.MaxCandidates > 20 { return out, errors.New("max_candidates must be between 1 and 20") }
 	if len(bars) < 30 { return out, errors.New("at least 30 historical sessions are required") }
@@ -92,7 +92,6 @@ func BuildPlan(bars []Bar, req Request) (Plan, error) {
 	score+=math.Min(20,math.Max(0,(ema5/ema20-1)*1000))
 	score+=math.Min(15,math.Max(0,(rsi-45)*1.5))
 	if float64(last.Volume)>=avgVol { score+=10 }
-	if style=="long_term" { score=math.Min(score,65) }
 	out=Plan{
 		AsOfDate:last.Date.Format("2006-01-02"),Style:style,LastClose:last.Close,
 		EntryLow:entryLow,EntryHigh:entryHigh,StopLoss:stop,Target1:target1,Target2:target2,
